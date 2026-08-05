@@ -305,8 +305,45 @@ kbd {
 
 footer { border-top: 1px solid var(--line); padding: 26px 0; color: var(--faint); font-size: 13px; text-align: center; }
 
+/* ---------- modal ---------- */
+/* Native <dialog>, so focus trapping, Escape and stacking are the browser's
+   job rather than ours. Only the skin is here. */
+.modal {
+  border: 1px solid var(--line); border-radius: 14px; background: var(--surface);
+  color: var(--text); padding: 0; width: min(420px, calc(100vw - 32px));
+  box-shadow: 0 1px 2px rgba(13,21,38,.06), 0 26px 60px -26px rgba(13,21,38,.5);
+  animation: modal-in .16s ease-out;
+}
+.modal::backdrop {
+  background: rgba(13,21,38,.42);
+  backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+  animation: modal-fade .16s ease-out;
+}
+.modal form { padding: 22px; }
+.modal h2 { font-size: 17px; font-weight: 600; letter-spacing: -0.02em; margin: 0; }
+.modal p { color: var(--faint); font-size: 13.5px; margin: 7px 0 0; }
+.modal .field { width: 100%; margin-top: 16px; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+.btn.danger {
+  background: #E11D48; color: #fff;
+  box-shadow: 0 1px 0 rgba(255,255,255,.18) inset, 0 6px 18px -9px #E11D48;
+}
+
+@keyframes modal-in { from { opacity: 0; transform: translateY(6px) scale(.98); } }
+@keyframes modal-fade { from { opacity: 0; } }
+
+/* Honeypot. Off screen rather than display:none, which is trivially detected,
+   and out of the tab order so nobody lands in it by accident. */
+.hp {
+  position: absolute; left: -9999px; width: 1px; height: 1px;
+  opacity: 0; pointer-events: none;
+}
+
 @media (max-width: 700px) {
   .rail { grid-template-columns: repeat(2, 1fr); }
   .row-meta { padding-left: 0; }
 }
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+  .modal, .modal::backdrop { animation: none; }
+}

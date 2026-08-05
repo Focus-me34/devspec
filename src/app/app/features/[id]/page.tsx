@@ -4,6 +4,7 @@ import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { QUESTIONS, STAGES, missingCount, checksOf } from "@/lib/spec";
+import { useModal } from "@/components/Modal";
 import type { Answers } from "@/db/schema";
 
 type Feature = {
@@ -39,6 +40,7 @@ function tint(n: string) {
 export default function FeaturePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
+  const { confirm, modal } = useModal();
   const [f, setF] = useState<Feature | null>(null);
   const [projectName, setProjectName] = useState("");
   const [notes, setNotes] = useState<Note[]>([]);
@@ -83,7 +85,12 @@ export default function FeaturePage({ params }: { params: Promise<{ id: string }
   }
 
   async function remove() {
-    if (!confirm("Delete this feature? The notes and specification go with it.")) return;
+    const ok = await confirm({
+      title: "Delete this feature?",
+      message: "The specification, the notes and the history go with it. This cannot be undone.",
+      confirmLabel: "Delete", danger: true,
+    });
+    if (!ok) return;
     await fetch(`/api/features/${id}`, { method: "DELETE" });
     router.push("/app");
   }
@@ -262,6 +269,7 @@ export default function FeaturePage({ params }: { params: Promise<{ id: string }
 
         <button className="btn plain danger" onClick={remove}>Delete this feature</button>
       </div>
+      {modal}
     </>
   );
 }

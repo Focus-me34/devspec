@@ -14,6 +14,8 @@ function Form() {
   const [password, setPassword] = useState("");
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
+  // Honeypot. Hidden from people, so anything in it came from a bot.
+  const [company, setCompany] = useState("");
 
   async function submit() {
     setErr("");
@@ -22,7 +24,7 @@ function Form() {
       const res = await fetch(`/api/auth/${mode}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, name, teamName }),
+        body: JSON.stringify({ email, password, name, teamName, company }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Something went wrong");
@@ -54,6 +56,9 @@ function Form() {
             onChange={(e) => setName(e.target.value)} autoComplete="name" />
           <input className="field" placeholder="Team name" value={teamName}
             onChange={(e) => setTeamName(e.target.value)} />
+          <input className="hp" type="text" name="company" tabIndex={-1}
+            autoComplete="off" aria-hidden="true"
+            value={company} onChange={(e) => setCompany(e.target.value)} />
         </>
       )}
       <input className="field" type="email" placeholder="you@company.com" value={email}

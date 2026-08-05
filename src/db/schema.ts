@@ -81,3 +81,11 @@ export const activity = pgTable("activity", {
   toStatus: text("to_status").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => ({ featIdx: index("activity_feature_idx").on(t.featureId, t.createdAt) }));
+
+/** One row per registration attempt, successful or not, used only to rate
+ *  limit signups per IP. Rows older than a day are swept on write. */
+export const signupAttempts = pgTable("signup_attempts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  ip: text("ip").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => ({ ipIdx: index("signup_attempts_ip_idx").on(t.ip, t.createdAt) }));

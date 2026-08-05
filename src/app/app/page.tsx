@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { STAGES, missingCount } from "@/lib/spec";
+import { useModal } from "@/components/Modal";
 import type { Answers } from "@/db/schema";
 
 type Team = { id: string; name: string; role: string };
@@ -30,6 +31,7 @@ function ago(iso: string) {
 
 export default function AppPage() {
   const router = useRouter();
+  const { ask, confirm, notify, modal } = useModal();
   const [me, setMe] = useState<{ name: string } | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
   const [teamId, setTeamId] = useState("");
@@ -73,39 +75,86 @@ export default function AppPage() {
 
   async function newFeature() {
     const list = projects;
-    if (!list.length) return alert("Create a project first");
-    const title = prompt("What is the feature? A sentence is enough.");
-    if (!title?.trim()) return;
+    if (!list.length) {
+      return notify({ title: "No project yet", message: "Create a project first, then add features to it." });
+    }
+    const title = await ask({
+      title: "New feature",
+      message: "What is it? A sentence is enough, you fill in the specification next.",
+      placeholder: "Let people export their invoices",
+      confirmLabel: "Create",
+    });
+    if (!title) return;
     const projectId = project !== "all" ? project : list[0].id;
     const res = await fetch("/api/features", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ projectId, title }),
     });
     const data = await res.json();
-    if (!res.ok) return alert(data.error);
+    if (!res.ok) return notify({ title: "Could not create the feature", message: data.error });
     router.push(`/app/features/${data.feature.id}`);
   }
 
   async function newProject() {
-    const name = prompt("Project name. One per codebase, usually.");
-    if (!name?.trim()) return;
+    const name = await ask({
+      title: "New project",
+      message: "One per codebase, usually.",
+      placeholder: "Project name",
+      confirmLabel: "Create",
+    });
+    if (!name) return;
     const res = await fetch("/api/projects", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ teamId, name }),
     });
-    if (!res.ok) return alert((await res.json()).error);
+    if (!res.ok) return notify({ title: "Could not create the project", message: (await res.json()).error });
     reload();
   }
 
+  async function renameProject() {
+    const current = projects.find((p) => p.id === project);
+    if (!current) return;
+    const name = await ask({
+      title: "Rename project", initial: current.name,
+      placeholder: "Project name", confirmLabel: "Rename",
+    });
+    if (!name || name === current.name) return;
+    const res = await fetch(`/api/projects/${current.id}`, {
+      method: "PATCH", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name }),
+    });
+    if (!res.ok) return notify({ title: "Could not rename", message: (await res.json()).error });
+    reload();
+  }
+
+  async function deleteProject() {
+    const current = projects.find((p) => p.id === project);
+    if (!current) return;
+    // Ask the API what a delete would take with it, the cascade is not obvious.
+    const info = await fetch(`/api/projects/${current.id}`).then((r) => r.json());
+    const n = info.featureCount ?? 0;
+    const ok = await confirm({
+      title: `Delete ${current.name}?`,
+      message: n === 0
+        ? "The project is empty. This cannot be undone."
+        : `Its ${n} feature${n === 1 ? "" : "s"} go with it, specifications, notes and history included. This cannot be undone.`,
+      confirmLabel: "Delete", danger: true,
+    });
+    if (!ok) return;
+    const res = await fetch(`/api/projects/${current.id}`, { method: "DELETE" });
+    if (!res.ok) return notify({ title: "Could not delete", message: (await res.json()).error });
+    setProject("all");
+  }
+
   async function newTeam() {
-    const name = prompt("Team name");
-    if (!name?.trim()) return;
+    const name = await ask({ title: "New team", placeholder: "Team name", confirmLabel: "Create" });
+    if (!name) return;
     const res = await fetch("/api/teams", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name }),
     });
     const data = await res.json();
-    if (!res.ok) return alert(data.error);
+    if (!res.ok) return notify({ title: "Could not create the team", message: data.error });
     setTeams([...teams, { ...data.team, role: "admin" }]);
     setTeamId(data.team.id);
     setProject("all");
@@ -155,6 +204,12 @@ export default function AppPage() {
             </button>
           ))}
           <button className="tab" onClick={newProject} title="New project">+</button>
+          {project !== "all" && (
+            <span style={{ marginLeft: "auto", display: "flex", gap: 12, paddingBottom: 9 }}>
+              <button className="btn plain" onClick={renameProject}>Rename</button>
+              <button className="btn plain danger" onClick={deleteProject}>Delete</button>
+            </span>
+          )}
         </div>
 
         <div className="filters">
@@ -198,6 +253,7 @@ export default function AppPage() {
           })
         )}
       </div>
+      {modal}
     </>
   );
 }

@@ -146,6 +146,27 @@ export default function AppPage() {
     setProject("all");
   }
 
+  /** Mints a link that puts whoever opens it into this team. Admins only, and
+   *  the API enforces that too. */
+  async function inviteToTeam() {
+    const team = teams.find((t) => t.id === teamId);
+    const res = await fetch(`/api/teams/${teamId}/invite`, { method: "POST" });
+    const data = await res.json();
+    if (!res.ok) return notify({ title: "Could not create an invite", message: data.error });
+
+    const url = `${location.origin}/invite?t=${data.token}`;
+    let copied = false;
+    try { await navigator.clipboard.writeText(url); copied = true; } catch { /* shown below instead */ }
+
+    notify({
+      title: copied ? "Invite link copied" : "Invite link",
+      message: `${copied ? "Paste it wherever you talk to them." : "Copy this and send it to them."} `
+        + `Anyone who opens it joins ${team?.name ?? "the team"}, and it stops working after ${data.expiresInDays} days.`,
+      detail: url,
+      confirmLabel: "Done",
+    });
+  }
+
   async function newTeam() {
     const name = await ask({ title: "New team", placeholder: "Team name", confirmLabel: "Create" });
     if (!name) return;
@@ -186,6 +207,9 @@ export default function AppPage() {
               onChange={(e) => { setTeamId(e.target.value); setProject("all"); }}>
               {teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
             </select>
+            {teams.find((t) => t.id === teamId)?.role === "admin" && (
+              <button className="btn ghost" onClick={inviteToTeam}>Invite</button>
+            )}
             <button className="btn ghost" onClick={newTeam}>New team</button>
             <button className="btn" onClick={newFeature}>New feature</button>
             <button className="btn plain" onClick={signOut}>Sign out</button>

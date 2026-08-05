@@ -24,6 +24,8 @@ export type Spec = {
   cancelLabel?: string;
   /** Red confirm button, for anything that destroys data. */
   danger?: boolean;
+  /** Shown under the message in a selectable block, for links and the like. */
+  detail?: string;
   /** ask() only. */
   placeholder?: string;
   initial?: string;
@@ -76,6 +78,7 @@ function Dialog({ pending, onClosed }: { pending: Pending | null; onClosed: () =
       <form method="dialog" onSubmit={(e) => { e.preventDefault(); accept(); }}>
         <h2 id="modal-title">{title}</h2>
         {message && <p>{message}</p>}
+        {pending.detail && <p className="modal-detail">{pending.detail}</p>}
 
         {kind === "ask" && (
           <input

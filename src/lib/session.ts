@@ -27,6 +27,9 @@ export async function getSession(): Promise<Session | null> {
   if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, secret());
+    // Invite tokens are signed with the same secret, so confirm this is
+    // actually a session before trusting it as one.
+    if (typeof payload.userId !== "string") return null;
     return payload as unknown as Session;
   } catch {
     return null;

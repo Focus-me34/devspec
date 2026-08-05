@@ -4,7 +4,7 @@ const site = process.env.NEXT_PUBLIC_SITE_URL || "https://devspec.app";
 
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: [{ userAgent: "*", allow: "/", disallow: ["/app", "/api"] }],
+    rules: [{ userAgent: "*", allow: "/", disallow: ["/app", "/api", "/invite"] }],
     sitemap: `${site}/sitemap.xml`,
   };
 }

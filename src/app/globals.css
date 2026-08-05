@@ -323,6 +323,12 @@ footer { border-top: 1px solid var(--line); padding: 26px 0; color: var(--faint)
 .modal h2 { font-size: 17px; font-weight: 600; letter-spacing: -0.02em; margin: 0; }
 .modal p { color: var(--faint); font-size: 13.5px; margin: 7px 0 0; }
 .modal .field { width: 100%; margin-top: 16px; }
+.modal-detail {
+  font-family: var(--mono); font-size: 12px; line-height: 1.5;
+  color: var(--text) !important; word-break: break-all; user-select: all;
+  background: var(--surface-hi); border: 1px solid var(--line);
+  border-radius: 8px; padding: 10px 12px; margin-top: 14px !important;
+}
 .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
 .btn.danger {
   background: #E11D48; color: #fff;

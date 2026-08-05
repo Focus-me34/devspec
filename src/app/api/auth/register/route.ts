@@ -2,6 +2,7 @@ import { db, users, teams, members, projects, signupAttempts } from "@/db";
 import { eq, and, gt, count, lt } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { createSession } from "@/lib/session";
+import { readInvite } from "@/lib/invite";
 import { fail } from "@/lib/guard";
 
 /** Registration is open by default. Set ALLOWED_EMAILS (comma separated) to
@@ -43,7 +44,7 @@ function originOk(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { email, name, password, teamName, company } = body;
+    const { email, name, password, teamName, company, inviteToken } = body;
 
     // Honeypot. The field is hidden from people and left empty by them, so
     // anything in it means a bot filled the form in blind. Answer exactly like
@@ -64,7 +65,26 @@ export async function POST(req: Request) {
     }
 
     const clean = String(email).trim().toLowerCase();
-    if (!emailAllowed(clean)) {
+
+    // Resolved before the account is created, so a broken link fails cleanly
+    // rather than leaving a user with no team.
+    const invite = inviteToken ? await readInvite(inviteToken) : null;
+    if (inviteToken && !invite) {
+      return Response.json(
+        { error: "This invite link is invalid or has expired" },
+        { status: 400 },
+      );
+    }
+    let invitedTeam: { id: string } | null = null;
+    if (invite) {
+      const [team] = await db.select({ id: teams.id }).from(teams)
+        .where(eq(teams.id, invite.teamId)).limit(1);
+      if (!team) return Response.json({ error: "That team no longer exists" }, { status: 404 });
+      invitedTeam = team;
+    }
+
+    // Being invited is itself the permission, so the allowlist does not apply.
+    if (!invitedTeam && !emailAllowed(clean)) {
       return Response.json(
         { error: "Registration is invite only. Ask an admin to add your address." },
         { status: 403 },
@@ -96,9 +116,14 @@ export async function POST(req: Request) {
       passwordHash: await bcrypt.hash(String(password), 10),
     }).returning();
 
-    const [team] = await db.insert(teams).values({ name: teamName?.trim() || `${user.name}'s team` }).returning();
-    await db.insert(members).values({ teamId: team.id, userId: user.id, role: "admin" });
-    await db.insert(projects).values({ teamId: team.id, name: "General" });
+    if (invitedTeam) {
+      // They were invited, so they join that team rather than starting one.
+      await db.insert(members).values({ teamId: invitedTeam.id, userId: user.id, role: "member" });
+    } else {
+      const [team] = await db.insert(teams).values({ name: teamName?.trim() || `${user.name}'s team` }).returning();
+      await db.insert(members).values({ teamId: team.id, userId: user.id, role: "admin" });
+      await db.insert(projects).values({ teamId: team.id, name: "General" });
+    }
 
     await createSession({ userId: user.id, email: user.email, name: user.name });
     return Response.json({ ok: true });

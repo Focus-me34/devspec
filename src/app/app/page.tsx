@@ -20,6 +20,26 @@ const HUE: Record<string, string> = {
   deployed: "var(--s-deployed)", dropped: "var(--s-dropped)",
 };
 
+/* Stroke icons on a 24 grid, sized by .icon-btn svg. Inline rather than a
+   dependency, there are only two of them. */
+function PencilIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+      strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
+    </svg>
+  );
+}
+
+function TrashIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+      strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m2 0-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+    </svg>
+  );
+}
+
 function ago(iso: string) {
   const s = (Date.now() - new Date(iso).getTime()) / 1000;
   if (s < 60) return "just now";
@@ -189,6 +209,8 @@ export default function AppPage() {
   if (loading) return <div className="wrap" style={{ paddingTop: 40 }}><p className="hint">Loading</p></div>;
 
   const shown = filter === "all" ? features : features.filter((f) => f.status === filter);
+  // Null on the All tab, which has nothing to rename or delete.
+  const current = projects.find((p) => p.id === project) ?? null;
 
   return (
     <>
@@ -219,20 +241,28 @@ export default function AppPage() {
 
       <div className="wrap">
         <div className="tabs">
-          <button className="tab" aria-selected={project === "all"} onClick={() => setProject("all")}>
-            All<span className="n">{features.length}</span>
-          </button>
-          {projects.map((p) => (
-            <button key={p.id} className="tab" aria-selected={project === p.id} onClick={() => setProject(p.id)}>
-              {p.name}
+          <div className="tab-list">
+            <button className="tab" aria-selected={project === "all"} onClick={() => setProject("all")}>
+              All<span className="n">{features.length}</span>
             </button>
-          ))}
-          <button className="tab" onClick={newProject} title="New project">+</button>
-          {project !== "all" && (
-            <span style={{ marginLeft: "auto", display: "flex", gap: 12, paddingBottom: 9 }}>
-              <button className="btn plain" onClick={renameProject}>Rename</button>
-              <button className="btn plain danger" onClick={deleteProject}>Delete</button>
-            </span>
+            {projects.map((p) => (
+              <button key={p.id} className="tab" aria-selected={project === p.id} onClick={() => setProject(p.id)}>
+                {p.name}
+              </button>
+            ))}
+            <button className="tab" onClick={newProject} title="New project">+</button>
+          </div>
+          {current && (
+            <div className="tab-actions">
+              <button className="icon-btn" onClick={renameProject}
+                title={`Rename ${current.name}`} aria-label={`Rename ${current.name}`}>
+                <PencilIcon />
+              </button>
+              <button className="icon-btn danger" onClick={deleteProject}
+                title={`Delete ${current.name}`} aria-label={`Delete ${current.name}`}>
+                <TrashIcon />
+              </button>
+            </div>
           )}
         </div>
 

@@ -148,7 +148,11 @@ kbd {
 .logo small { color: var(--faint); font-weight: 400; letter-spacing: 0; }
 .bar-right { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
 
-.tabs { display: flex; gap: 2px; align-items: center; flex-wrap: wrap; border-bottom: 1px solid var(--line); margin-bottom: 16px; }
+/* The tab list wraps, the actions never do: keeping them in one flex row
+   stranded them on a line of their own as soon as the projects overflowed. */
+.tabs { display: flex; align-items: flex-end; gap: 10px; border-bottom: 1px solid var(--line); margin-bottom: 16px; }
+.tab-list { display: flex; gap: 2px; align-items: center; flex-wrap: wrap; flex: 1; min-width: 0; }
+.tab-actions { display: flex; gap: 3px; align-items: center; flex-shrink: 0; padding-bottom: 6px; }
 .tab {
   position: relative; background: none; border: none; color: var(--faint);
   font-size: 13.5px; font-weight: 500; padding: 8px 12px 11px; transition: color .15s;
@@ -160,6 +164,23 @@ kbd {
   border-radius: 2px 2px 0 0; background: linear-gradient(90deg, var(--brand-a), var(--brand-b));
 }
 .tab .n { font-family: var(--mono); font-size: 10px; color: var(--faint); margin-left: 5px; }
+
+/* Quiet square control. Sits next to navigation without competing with it,
+   and only earns a background on hover. */
+.icon-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; padding: 0;
+  background: none; border: 1px solid transparent; border-radius: 7px;
+  color: var(--faint);
+  transition: color .15s, background .15s, border-color .15s;
+}
+.icon-btn svg { width: 15px; height: 15px; display: block; }
+.icon-btn:hover { color: var(--text); background: var(--surface-hi); border-color: var(--line); }
+.icon-btn.danger:hover {
+  color: #E11D48;
+  background: color-mix(in srgb, #E11D48 9%, transparent);
+  border-color: color-mix(in srgb, #E11D48 24%, transparent);
+}
 
 .filters { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 18px; align-items: center; }
 .chip {
@@ -330,7 +351,10 @@ footer { border-top: 1px solid var(--line); padding: 26px 0; color: var(--faint)
   border-radius: 8px; padding: 10px 12px; margin-top: 14px !important;
 }
 .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
-.btn.danger {
+/* Solid danger, for the modal's confirm. Excludes .plain, which is the
+   pre-existing quiet text variant and must stay quiet. Both selectors are
+   two classes, so without the :not() whichever comes last in this file wins. */
+.btn.danger:not(.plain) {
   background: #E11D48; color: #fff;
   box-shadow: 0 1px 0 rgba(255,255,255,.18) inset, 0 6px 18px -9px #E11D48;
 }

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { QUESTIONS, STAGES, missingCount, checksOf } from "@/lib/spec";
 import { useModal } from "@/components/Modal";
+import { initials, tint } from "@/lib/avatar";
 import type { Answers } from "@/db/schema";
 
 type Feature = {
@@ -26,15 +27,6 @@ function ago(iso: string) {
   if (s < 3600) return `${Math.floor(s / 60)}m ago`;
   if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
   return new Date(iso).toLocaleDateString();
-}
-function initials(n: string) {
-  return n.replace(/[^a-zA-Z ]/g, " ").split(" ").filter(Boolean).slice(0, 2)
-    .map((w) => w[0].toUpperCase()).join("") || "?";
-}
-function tint(n: string) {
-  let h = 0;
-  for (const c of n) h = (h * 31 + c.charCodeAt(0)) % 360;
-  return `hsl(${(h % 100) + 185} 62% 42%)`;
 }
 
 export default function FeaturePage({ params }: { params: Promise<{ id: string }> }) {

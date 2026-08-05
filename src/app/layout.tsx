@@ -6,29 +6,29 @@ const site = process.env.NEXT_PUBLIC_SITE_URL || "https://devspec.app";
 export const metadata: Metadata = {
   metadataBase: new URL(site),
   title: {
-    default: "devSpec — write the spec before you build it",
-    template: "%s | devSpec",
+    default: "DevSpec — write the spec before you build it",
+    template: "%s | DevSpec",
   },
   description:
-    "devSpec is a feature specification tool for small development teams. Every feature has to answer six questions and list its acceptance checks before it can move out of discussion.",
+    "DevSpec is a feature specification tool for small development teams. Every feature has to answer six questions and list its acceptance checks before it can move out of discussion.",
   keywords: [
     "feature specification tool", "software requirements", "acceptance criteria",
     "small dev teams", "spec before code", "product requirements",
     "definition of done", "lightweight issue tracker",
   ],
-  authors: [{ name: "devSpec" }],
+  authors: [{ name: "DevSpec" }],
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     url: site,
-    siteName: "devSpec",
-    title: "devSpec — write the spec before you build it",
+    siteName: "DevSpec",
+    title: "DevSpec — write the spec before you build it",
     description:
       "Six questions and at least one acceptance check, enforced by the database. Small teams stop shipping features nobody defined.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "devSpec — write the spec before you build it",
+    title: "DevSpec — write the spec before you build it",
     description:
       "Six questions and at least one acceptance check, enforced before a feature can move forward.",
   },

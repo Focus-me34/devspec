@@ -117,7 +117,7 @@ export default function FeaturePage({ params }: { params: Promise<{ id: string }
     <>
       <div className="bar">
         <div className="bar-in">
-          <Link href="/app" className="logo"><span className="dot" />devSpec</Link>
+          <Link href="/app" className="logo"><span className="dot" />DevSpec</Link>
           <Link href="/app" className="btn plain">&larr; All features</Link>
         </div>
       </div>

@@ -41,7 +41,7 @@ function Form() {
     <div className="auth">
       <Link href="/" className="logo" style={{ marginBottom: 26 }}>
         <span className="dot" />
-        devSpec
+        DevSpec
       </Link>
       <h1>{mode === "login" ? "Sign in" : "Create your team"}</h1>
       <p>

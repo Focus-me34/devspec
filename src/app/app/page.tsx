@@ -196,7 +196,7 @@ export default function AppPage() {
         <div className="bar-in">
           <Link href="/app" className="logo">
             <span className="dot" />
-            devSpec <small>/ {teams.find((t) => t.id === teamId)?.name ?? ""}</small>
+            DevSpec <small>/ {teams.find((t) => t.id === teamId)?.name ?? ""}</small>
           </Link>
           <div className="bar-right">
             <button className="btn icon" onClick={toggleTheme} aria-label="Toggle theme">

@@ -82,7 +82,7 @@ function Invite() {
   if (err && !info) {
     return (
       <div className="auth">
-        <Link href="/" className="logo" style={{ marginBottom: 26 }}><span className="dot" />devSpec</Link>
+        <Link href="/" className="logo" style={{ marginBottom: 26 }}><span className="dot" />DevSpec</Link>
         <h1>This link does not work</h1>
         <p>{err}</p>
         <Link href="/login" className="btn">Go to sign in</Link>
@@ -94,10 +94,10 @@ function Invite() {
   if (info.alreadyIn) {
     return (
       <div className="auth">
-        <Link href="/" className="logo" style={{ marginBottom: 26 }}><span className="dot" />devSpec</Link>
+        <Link href="/" className="logo" style={{ marginBottom: 26 }}><span className="dot" />DevSpec</Link>
         <h1>You are already in {info.teamName}</h1>
         <p>Nothing to do here.</p>
-        <Link href="/app" className="btn">Open devSpec</Link>
+        <Link href="/app" className="btn">Open DevSpec</Link>
       </div>
     );
   }
@@ -105,7 +105,7 @@ function Invite() {
   if (info.signedIn) {
     return (
       <div className="auth">
-        <Link href="/" className="logo" style={{ marginBottom: 26 }}><span className="dot" />devSpec</Link>
+        <Link href="/" className="logo" style={{ marginBottom: 26 }}><span className="dot" />DevSpec</Link>
         <h1>Join {info.teamName}</h1>
         <p>You are signed in already, so this is one click.</p>
         <button className="btn" onClick={joinAsCurrentUser} disabled={busy}>
@@ -118,7 +118,7 @@ function Invite() {
 
   return (
     <div className="auth">
-      <Link href="/" className="logo" style={{ marginBottom: 26 }}><span className="dot" />devSpec</Link>
+      <Link href="/" className="logo" style={{ marginBottom: 26 }}><span className="dot" />DevSpec</Link>
       <h1>Join {info.teamName}</h1>
       <p>
         {mode === "register"

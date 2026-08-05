@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "devSpec — write the spec before you build it",
+  title: "DevSpec — write the spec before you build it",
   description:
     "A feature specification tool for teams of two to ten. Six questions and at least one acceptance check, enforced by the database, before any feature can leave discussion.",
 };
@@ -44,12 +44,12 @@ const STAGES = [
 
 const FAQ = [
   {
-    q: "Who is devSpec for?",
+    q: "Who is DevSpec for?",
     a: "Development teams of roughly two to ten people who discuss features in chat and cannot find those discussions later.",
   },
   {
     q: "How is this different from Jira or Linear?",
-    a: "Those track work. devSpec makes you define it first. There is no backlog grooming, no estimation and no workflow builder, and a feature physically cannot advance until it is specified.",
+    a: "Those track work. DevSpec makes you define it first. There is no backlog grooming, no estimation and no workflow builder, and a feature physically cannot advance until it is specified.",
   },
   {
     q: "What are the six questions?",
@@ -57,7 +57,7 @@ const FAQ = [
   },
   {
     q: "Can I self-host it?",
-    a: "Yes. It is a Next.js app and a Postgres database. Anywhere that runs those runs devSpec.",
+    a: "Yes. It is a Next.js app and a Postgres database. Anywhere that runs those runs DevSpec.",
   },
 ];
 
@@ -65,7 +65,7 @@ export default function Home() {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    name: "devSpec",
+    name: "DevSpec",
     applicationCategory: "DeveloperApplication",
     operatingSystem: "Web",
     description:
@@ -93,7 +93,7 @@ export default function Home() {
         <div className="bar-in">
           <Link href="/" className="logo">
             <span className="dot" />
-            devSpec
+            DevSpec
           </Link>
           <div className="bar-right">
             <Link href="/login" className="btn ghost">Sign in</Link>
@@ -109,7 +109,7 @@ export default function Home() {
             Write the spec <span>before</span> you build it
           </h1>
           <p>
-            Feature discussions die in chat. devSpec keeps them attached to the feature,
+            Feature discussions die in chat. DevSpec keeps them attached to the feature,
             and refuses to let anything move forward until six questions are answered
             and the acceptance checks are written down.
           </p>
@@ -128,7 +128,7 @@ export default function Home() {
             board tracks work that has already been defined.
           </p>
           <p>
-            devSpec puts the conversation inside the feature and makes the definition a
+            DevSpec puts the conversation inside the feature and makes the definition a
             precondition for progress.
           </p>
         </section>
@@ -164,7 +164,7 @@ export default function Home() {
         <section className="sec" id="questions">
           <h2>The six questions</h2>
           <p>
-            Every developer asks these before writing code. devSpec asks them first, in
+            Every developer asks these before writing code. DevSpec asks them first, in
             writing, where everyone can see the answers.
           </p>
           <div className="grid">
@@ -203,7 +203,7 @@ export default function Home() {
         </section>
       </main>
 
-      <footer>devSpec &middot; write the spec before you build it</footer>
+      <footer>DevSpec &middot; write the spec before you build it</footer>
     </>
   );
 }

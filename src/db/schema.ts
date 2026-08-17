@@ -32,6 +32,11 @@ export const users = pgTable("users", {
    *  an env var and a second service for a few tens of kilobytes per person.
    *  Swap to Vercel Blob if this ever holds more than avatars. */
   avatar: text("avatar"),
+  /** Platform operator. Passes requireMember for every team, and sees every
+   *  team in the picker, whether or not they belong to it. Deliberately not
+   *  settable through the app: it is granted with SQL and nothing else, because
+   *  anything that can set it can grant itself the whole database. */
+  superAdmin: boolean("super_admin").notNull().default(false),
   passwordHash: text("password_hash").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => ({ emailIdx: uniqueIndex("users_email_idx").on(t.email) }));

@@ -9,13 +9,18 @@ import { ME_CHANGED } from "@/lib/theme";
 type Me = {
   id: string; email: string; name: string;
   title: string | null; firstName: string | null; lastName: string | null;
-  phone: string | null; avatar: string | null;
+  phone: string | null; avatar: string | null; superAdmin: boolean;
 };
 
 /** Resized in the browser before it ever leaves it. The row holds a data URL,
  *  so shipping a 4MB phone photo would put 4MB in Postgres and 4MB back down
  *  the wire on every read. A square 256px JPEG lands around 20KB. */
 const AVATAR_PX = 256;
+
+/** An honorific, not a job title. A fixed list rather than free text so it
+ *  cannot drift into "CTO" or "Head of Platform", which belong nowhere near
+ *  how somebody is addressed. */
+const HONORIFICS = ["Mr", "Mrs", "Ms", "Miss", "Mx", "Dr", "Prof"];
 
 function shrink(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -147,7 +152,10 @@ export default function ProfilePage() {
       <AppBar />
       <div className="wrap prose">
         <h1>Your profile</h1>
-        <p className="hint">How you appear to everyone else in your teams.</p>
+        <p className="hint">
+          How you appear to everyone else in your teams.
+          {me.superAdmin && ` You are a platform operator, so you are shown everywhere as "${me.name}".`}
+        </p>
 
         <div className="block">
           <div className="block-head"><span className="mono">Details</span></div>
@@ -155,8 +163,10 @@ export default function ProfilePage() {
           <div className="field-row">
             <label className="lbl-f">
               <span>Title</span>
-              <input className="field" value={title} placeholder="Optional"
-                onChange={(e) => setTitle(e.target.value)} />
+              <select className="field" value={title} onChange={(e) => setTitle(e.target.value)}>
+                <option value="">None</option>
+                {HONORIFICS.map((h) => <option key={h} value={h}>{h}</option>)}
+              </select>
             </label>
             <label className="lbl-f">
               <span>First name</span>

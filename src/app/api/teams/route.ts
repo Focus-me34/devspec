@@ -1,14 +1,28 @@
 import { db, teams, members, projects } from "@/db";
-import { eq } from "drizzle-orm";
-import { requireUser, fail } from "@/lib/guard";
+import { asc, eq, sql } from "drizzle-orm";
+import { requireUser, currentUser, fail } from "@/lib/guard";
 
 export async function GET() {
   try {
-    const user = await requireUser();
-    const rows = await db.select({ id: teams.id, name: teams.name, role: members.role })
-      .from(members).innerJoin(teams, eq(members.teamId, teams.id))
-      .where(eq(members.userId, user.userId));
-    return Response.json({ teams: rows, me: { name: user.name, email: user.email } });
+    const session = await requireUser();
+    // From the database, not the cookie: the cookie's name can be stale.
+    const user = { ...session, ...(await currentUser(session.userId)) };
+    const superAdmin = user.superAdmin;
+
+    // A platform operator gets every team, which is what makes every team's
+    // features and people reachable: the routes below all gate on
+    // requireMember, and that already lets an operator through.
+    const rows = superAdmin
+      ? await db.select({ id: teams.id, name: teams.name, role: sql<string>`'admin'` })
+        .from(teams).orderBy(asc(teams.createdAt))
+      : await db.select({ id: teams.id, name: teams.name, role: members.role })
+        .from(members).innerJoin(teams, eq(members.teamId, teams.id))
+        .where(eq(members.userId, user.userId));
+
+    return Response.json({
+      teams: rows,
+      me: { name: user.name, email: user.email, superAdmin },
+    });
   } catch (e) { return fail(e); }
 }
 

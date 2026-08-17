@@ -19,7 +19,7 @@ export async function GET() {
     const [me] = await db.select({
       id: users.id, email: users.email, name: users.name,
       title: users.title, firstName: users.firstName, lastName: users.lastName,
-      phone: users.phone, avatar: users.avatar,
+      phone: users.phone, avatar: users.avatar, superAdmin: users.superAdmin,
     }).from(users).where(eq(users.id, session.userId)).limit(1);
     if (!me) throw new HttpError(404, "Account not found");
     return Response.json({ me });
@@ -60,9 +60,13 @@ export async function PATCH(req: Request) {
       return Response.json({ error: "Email cannot be changed" }, { status: 400 });
     }
 
-    const first = (patch.firstName ?? existing.firstName) as string | null;
-    const last = (patch.lastName ?? existing.lastName) as string | null;
-    patch.name = displayName(first, last, existing.name);
+    // A platform operator is shown under a fixed name everywhere, so saving
+    // first and last must not quietly rename them back.
+    if (!existing.superAdmin) {
+      const first = (patch.firstName ?? existing.firstName) as string | null;
+      const last = (patch.lastName ?? existing.lastName) as string | null;
+      patch.name = displayName(first, last, existing.name);
+    }
 
     const [updated] = await db.update(users).set(patch)
       .where(eq(users.id, session.userId)).returning();
@@ -77,7 +81,7 @@ export async function PATCH(req: Request) {
       me: {
         id: updated.id, email: updated.email, name: updated.name,
         title: updated.title, firstName: updated.firstName, lastName: updated.lastName,
-        phone: updated.phone, avatar: updated.avatar,
+        phone: updated.phone, avatar: updated.avatar, superAdmin: updated.superAdmin,
       },
     });
   } catch (e) { return fail(e); }

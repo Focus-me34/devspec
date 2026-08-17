@@ -14,6 +14,8 @@ create table if not exists users (
   phone text,
   -- Small square image as a data URL, resized in the browser before upload.
   avatar text,
+  -- Platform operator. Granted with SQL only, never through the app.
+  super_admin boolean not null default false,
   password_hash text not null,
   created_at timestamptz not null default now()
 );
@@ -25,6 +27,7 @@ alter table users add column if not exists first_name text;
 alter table users add column if not exists last_name text;
 alter table users add column if not exists phone text;
 alter table users add column if not exists avatar text;
+alter table users add column if not exists super_admin boolean not null default false;
 
 create table if not exists teams (
   id uuid primary key default gen_random_uuid(),

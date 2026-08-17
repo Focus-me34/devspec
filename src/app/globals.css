@@ -474,11 +474,8 @@ kbd {
 /* Whatever the person filled in, as things you can act on: one click to write
    to them, one to call. Wraps rather than truncating, since a phone number cut
    in half is worse than useless. */
-.member-title {
-  font-family: var(--mono); font-size: 9.5px; font-weight: 500;
-  letter-spacing: .09em; text-transform: uppercase; color: var(--faint);
-  margin-right: 2px;
-}
+/* An honorific is part of how the person is named, so it is set exactly like
+   the name it precedes rather than dressed up as a badge of its own. */
 .member-contact { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 2px; }
 .member-contact a {
   font-size: 12.5px; color: var(--faint); text-decoration: none;
@@ -495,6 +492,16 @@ kbd {
   font-family: var(--mono); font-size: 9.5px; font-weight: 500;
   letter-spacing: .1em; text-transform: uppercase; color: var(--faint);
   border: 1px solid var(--line); border-radius: 5px; padding: 1px 5px;
+}
+/* Platform operator. Reads as a flag beside the real name, not instead of it,
+   and takes the brand colour so it is clearly a status and not another chip. */
+.chip-op {
+  font-family: var(--mono); font-size: 9.5px; font-weight: 600;
+  letter-spacing: .1em; text-transform: uppercase; white-space: nowrap;
+  color: var(--brand-a);
+  border: 1px solid color-mix(in srgb, var(--brand-a) 36%, transparent);
+  background: color-mix(in srgb, var(--brand-a) 9%, transparent);
+  border-radius: 5px; padding: 1px 6px;
 }
 
 /* Narrow: who they are on the first line, what you can do about it on the

@@ -60,13 +60,9 @@ export async function PATCH(req: Request) {
       return Response.json({ error: "Email cannot be changed" }, { status: 400 });
     }
 
-    // A platform operator is shown under a fixed name everywhere, so saving
-    // first and last must not quietly rename them back.
-    if (!existing.superAdmin) {
-      const first = (patch.firstName ?? existing.firstName) as string | null;
-      const last = (patch.lastName ?? existing.lastName) as string | null;
-      patch.name = displayName(first, last, existing.name);
-    }
+    const first = (patch.firstName ?? existing.firstName) as string | null;
+    const last = (patch.lastName ?? existing.lastName) as string | null;
+    patch.name = displayName(first, last, existing.name);
 
     const [updated] = await db.update(users).set(patch)
       .where(eq(users.id, session.userId)).returning();

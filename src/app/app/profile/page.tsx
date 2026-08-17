@@ -154,7 +154,7 @@ export default function ProfilePage() {
         <h1>Your profile</h1>
         <p className="hint">
           How you appear to everyone else in your teams.
-          {me.superAdmin && ` You are a platform operator, so you are shown everywhere as "${me.name}".`}
+          {me.superAdmin && " You are flagged as a platform operator, which is shown beside your name."}
         </p>
 
         <div className="block">

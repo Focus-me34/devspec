@@ -12,6 +12,7 @@ type Member = {
   id: string; userId: string; role: string; joinedAt: string;
   name: string; email: string;
   title: string | null; phone: string | null; avatar: string | null;
+  superAdmin: boolean;
 };
 type Me = { userId: string; role: string };
 
@@ -206,8 +207,8 @@ function People() {
 
                 <div className="member-id">
                   <div className="member-name">
-                    {m.title && <span className="member-title">{m.title}</span>}
-                    {m.name}
+                    {[m.title, m.name].filter(Boolean).join(" ")}
+                    {m.superAdmin && <span className="chip-op">Tech Admin</span>}
                     {self && <span className="chip-you">you</span>}
                   </div>
                   <div className="member-contact">

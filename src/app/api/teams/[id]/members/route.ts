@@ -20,6 +20,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
       title: users.title,
       phone: users.phone,
       avatar: users.avatar,
+      superAdmin: users.superAdmin,
     })
       .from(members).innerJoin(users, eq(members.userId, users.id))
       .where(eq(members.teamId, id))

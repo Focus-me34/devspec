@@ -521,7 +521,12 @@ kbd {
 .auth .btn.plain { width: auto; justify-content: flex-start; }
 /* The whole sentence centres under the form, rather than one half of it. */
 .auth .hint { text-align: center; }
-.err { color: #E11D48; font-size: 13px; margin: 8px 0 0; }
+/* Doubled class on purpose, not a typo. An error is a <p>, and container rules
+   like ".auth p" and ".invite p" are (0,1,1), so a plain ".err" at (0,1,0)
+   loses to them however late it appears in this file. That is why "Wrong email
+   or password" rendered in body grey. Two classes puts it above them without
+   reaching for !important. */
+.err.err { color: #E11D48; font-size: 13px; margin: 8px 0 0; }
 
 /* ---------- invite ---------- */
 .invite { max-width: 432px; margin: 9vh auto 0; padding: 0 22px 60px; }

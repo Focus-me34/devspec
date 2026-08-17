@@ -15,7 +15,8 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     const { user } = await requireMember(row.teamId);
 
     const [note] = await db.insert(notes)
-      .values({ featureId: id, authorName: user.name, body: body.trim() }).returning();
+      .values({ featureId: id, authorId: user.userId, authorName: user.name, body: body.trim() })
+      .returning();
     await db.update(features).set({ updatedAt: new Date() }).where(eq(features.id, id));
 
     return Response.json({ note });

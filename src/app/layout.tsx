@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
+import { THEME_SCRIPT } from "@/lib/theme";
 import "./globals.css";
 
 /** Self hosted at build time. The previous <link> to fonts.googleapis.com
@@ -54,9 +55,20 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
+/** suppressHydrationWarning on <html> because the script below deliberately
+ *  rewrites data-theme before React hydrates, so the server value and the
+ *  client value disagree by design. It suppresses that one element, not the
+ *  tree underneath it. */
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" data-theme="light" className={`${sans.variable} ${mono.variable}`}>
+    <html lang="en" data-theme="light" suppressHydrationWarning
+      className={`${sans.variable} ${mono.variable}`}>
+      <head>
+        {/* Before first paint, so a dark theme user never sees a white flash.
+            Doing this after hydration would be too late, and reading the cookie
+            server side would make every page dynamic, including marketing. */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body>{children}</body>
     </html>
   );

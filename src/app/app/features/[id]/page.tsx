@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { QUESTIONS, STAGES, missingCount, checksOf } from "@/lib/spec";
 import { useModal } from "@/components/Modal";
+import AppBar from "@/components/AppBar";
 import { initials, tint } from "@/lib/avatar";
 import type { Answers } from "@/db/schema";
 
@@ -13,7 +14,12 @@ type Feature = {
   ownerName: string | null; branchUrl: string | null;
   blocked: boolean; blockedReason: string | null; updatedAt: string;
 };
-type Note = { id: string; authorName: string; body: string; createdAt: string };
+type Note = {
+  id: string; authorName: string; body: string; createdAt: string;
+  /** True only when we know: the author has an id and it is no longer in the
+   *  team. Notes predating author_id report false rather than guessing. */
+  authorLeft: boolean;
+};
 type Act = { id: string; actorName: string; fromStatus: string | null; toStatus: string; createdAt: string };
 
 const HUE: Record<string, string> = {
@@ -119,12 +125,9 @@ export default function FeaturePage({ params }: { params: Promise<{ id: string }
 
   return (
     <>
-      <div className="bar">
-        <div className="bar-in">
-          <Link href="/app" className="logo"><span className="dot" />DevSpec</Link>
-          <Link href="/app" className="btn plain">&larr; All features</Link>
-        </div>
-      </div>
+      <AppBar teamName={projectName}>
+        <Link href="/app" className="btn ghost">&larr; All features</Link>
+      </AppBar>
 
       <div className="wrap">
         <input className="field" value={f.title}
@@ -168,8 +171,8 @@ export default function FeaturePage({ params }: { params: Promise<{ id: string }
           <div className="stack" style={{ marginTop: 0 }}>
             <input className="field" placeholder="Owner" defaultValue={f.ownerName ?? ""}
               onBlur={(e) => patch({ ownerName: e.target.value })} />
-            <input className="field" placeholder="Branch or PR URL" defaultValue={f.branchUrl ?? ""}
-              onBlur={(e) => patch({ branchUrl: e.target.value })} style={{ flex: 1, minWidth: 240 }} />
+            <input className="field grow" placeholder="Branch or PR URL" defaultValue={f.branchUrl ?? ""}
+              onBlur={(e) => patch({ branchUrl: e.target.value })} />
             <label className="hint" style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <input type="checkbox" checked={f.blocked}
                 onChange={(e) => patch({ blocked: e.target.checked })} />
@@ -241,10 +244,16 @@ export default function FeaturePage({ params }: { params: Promise<{ id: string }
               Nothing captured yet. Anything decided elsewhere goes here, in the words it was said in.
             </p>
           ) : notes.map((n) => (
-            <div className="note" key={n.id}>
+            <div className={`note${n.authorLeft ? " gone" : ""}`} key={n.id}>
               <span className="av" style={{ background: tint(n.authorName) }}>{initials(n.authorName)}</span>
-              <div>
-                <div className="note-head"><b>{n.authorName}</b> &middot; {ago(n.createdAt)}</div>
+              <div className="note-main">
+                <div className="note-head">
+                  <b>{n.authorName}</b>
+                  {n.authorLeft && (
+                    <span className="chip-gone" title="No longer in this team">former member</span>
+                  )}
+                  {" "}&middot; {ago(n.createdAt)}
+                </div>
                 <div className="note-body">{n.body}</div>
               </div>
             </div>

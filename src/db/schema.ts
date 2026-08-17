@@ -68,6 +68,11 @@ export const features = pgTable("features", {
 export const notes = pgTable("notes", {
   id: uuid("id").primaryKey().defaultRandom(),
   featureId: uuid("feature_id").notNull().references(() => features.id, { onDelete: "cascade" }),
+  /** Who wrote it, so the UI can tell that they have since left the team.
+   *  Nullable: notes written before this column existed have no author, and a
+   *  deleted account nulls it rather than taking the note with it. The name
+   *  below stays either way, because the note is the record of what was said. */
+  authorId: uuid("author_id").references(() => users.id, { onDelete: "set null" }),
   authorName: text("author_name").notNull(),
   body: text("body").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

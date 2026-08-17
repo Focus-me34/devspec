@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { STAGES, missingCount } from "@/lib/spec";
 import { useModal } from "@/components/Modal";
+import AppBar from "@/components/AppBar";
 import type { Answers } from "@/db/schema";
 
 type Team = { id: string; name: string; role: string };
@@ -77,7 +78,6 @@ export default function AppPage() {
   const [features, setFeatures] = useState<Feature[] | null>(null);
   const [filter, setFilter] = useState("all");
   const [q, setQ] = useState("");
-  const [theme, setTheme] = useState("light");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -103,12 +103,6 @@ export default function AppPage() {
   }, [teamId, project, q]);
 
   useEffect(() => { reload(); }, [reload]);
-
-  function toggleTheme() {
-    const next = theme === "dark" ? "light" : "dark";
-    setTheme(next);
-    document.documentElement.dataset.theme = next;
-  }
 
   async function newFeature() {
     const list = projects;
@@ -197,11 +191,6 @@ export default function AppPage() {
     setProject("all");
   }
 
-  async function signOut() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/login");
-  }
-
   if (loading) return <div className="wrap" style={{ paddingTop: 40 }}><p className="hint">Loading</p></div>;
 
   const loaded = features ?? [];
@@ -211,28 +200,14 @@ export default function AppPage() {
 
   return (
     <>
-      <div className="bar">
-        <div className="bar-in">
-          <Link href="/app" className="logo">
-            <span className="dot" />
-            DevSpec <small>/ {teams.find((t) => t.id === teamId)?.name ?? ""}</small>
-          </Link>
-          <div className="bar-right">
-            <button className="btn icon" onClick={toggleTheme} aria-label="Toggle theme">
-              {theme === "dark" ? "\u2600" : "\u263E"}
-            </button>
-            <span className="hint">{me?.name}</span>
-            <select className="field" value={teamId}
-              onChange={(e) => { setTeamId(e.target.value); setProject("all"); }}>
-              {teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
-            </select>
-            <Link href={`/app/team?team=${teamId}`} className="btn ghost">People</Link>
-            <button className="btn ghost" onClick={newTeam}>New team</button>
-            <button className="btn" onClick={newFeature}>New feature</button>
-            <button className="btn plain" onClick={signOut}>Sign out</button>
-          </div>
-        </div>
-      </div>
+      <AppBar teamName={teams.find((t) => t.id === teamId)?.name} teamId={teamId} userName={me?.name}>
+        <select className="field bar-teams" value={teamId} aria-label="Team"
+          onChange={(e) => { setTeamId(e.target.value); setProject("all"); }}>
+          {teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+        </select>
+        <button className="btn ghost" onClick={newTeam}>New team</button>
+        <button className="btn" onClick={newFeature}>New feature</button>
+      </AppBar>
 
       <div className="wrap">
         <div className="tabs">
@@ -270,8 +245,8 @@ export default function AppPage() {
               {s.label}<b>{loaded.filter((f) => f.status === s.id).length}</b>
             </button>
           ))}
-          <input className="field" placeholder="Search titles, specs and notes" value={q}
-            onChange={(e) => setQ(e.target.value)} style={{ marginLeft: "auto", minWidth: 220 }} />
+          <input className="field search" placeholder="Search titles, specs and notes" value={q}
+            onChange={(e) => setQ(e.target.value)} />
         </div>
 
         {features === null ? (

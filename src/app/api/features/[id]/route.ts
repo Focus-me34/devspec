@@ -1,4 +1,4 @@
-import { db, features, projects, notes, activity } from "@/db";
+import { db, features, projects, notes, activity, members } from "@/db";
 import { eq, asc } from "drizzle-orm";
 import { requireMember, fail, HttpError } from "@/lib/guard";
 
@@ -15,11 +15,23 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
     const { id } = await ctx.params;
     const row = await load(id);
     await requireMember(row.teamId);
-    const [ns, act] = await Promise.all([
+    const [ns, act, current] = await Promise.all([
       db.select().from(notes).where(eq(notes.featureId, id)).orderBy(asc(notes.createdAt)),
       db.select().from(activity).where(eq(activity.featureId, id)).orderBy(asc(activity.createdAt)),
+      db.select({ userId: members.userId }).from(members).where(eq(members.teamId, row.teamId)),
     ]);
-    return Response.json({ feature: row.f, projectName: row.projectName, notes: ns, activity: act });
+
+    // Only claim somebody has left when we actually know. Notes written before
+    // author_id existed have none, and absence of evidence is not evidence.
+    const inTeam = new Set(current.map((m) => m.userId));
+    const withAuthors = ns.map((n) => ({
+      ...n,
+      authorLeft: n.authorId !== null && !inTeam.has(n.authorId),
+    }));
+
+    return Response.json({
+      feature: row.f, projectName: row.projectName, notes: withAuthors, activity: act,
+    });
   } catch (e) { return fail(e); }
 }
 

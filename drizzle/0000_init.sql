@@ -57,11 +57,16 @@ create unique index if not exists features_ref_idx on features (project_id, ref)
 create table if not exists notes (
   id uuid primary key default gen_random_uuid(),
   feature_id uuid not null references features(id) on delete cascade,
+  -- Nullable on purpose: a deleted account nulls this rather than deleting the
+  -- note, and author_name is kept regardless. The note is the record.
+  author_id uuid references users(id) on delete set null,
   author_name text not null,
   body text not null,
   created_at timestamptz not null default now()
 );
 create index if not exists notes_feature_idx on notes (feature_id, created_at);
+-- For databases created before author_id existed. No-op on a fresh one.
+alter table notes add column if not exists author_id uuid references users(id) on delete set null;
 
 create table if not exists activity (
   id uuid primary key default gen_random_uuid(),

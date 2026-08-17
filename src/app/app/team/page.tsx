@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useModal } from "@/components/Modal";
+import AppBar from "@/components/AppBar";
 import { initials, tint } from "@/lib/avatar";
 
 type Team = { id: string; name: string; role: string };
@@ -151,15 +152,7 @@ function People() {
 
   return (
     <>
-      <div className="bar">
-        <div className="bar-in">
-          <Link href="/app" className="logo">
-            <span className="dot" />
-            DevSpec <small>/ {team.name}</small>
-          </Link>
-          <Link href="/app" className="btn plain">&larr; All features</Link>
-        </div>
-      </div>
+      <AppBar teamName={team.name} teamId={team.id} />
 
       <div className="wrap">
         <h1 style={{ fontSize: 24, fontWeight: 600, letterSpacing: "-0.03em", margin: "0 0 6px" }}>

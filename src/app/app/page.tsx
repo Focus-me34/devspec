@@ -40,6 +40,21 @@ function TrashIcon() {
   );
 }
 
+/** Stands in for a feature row while the first load is in flight. Built from
+ *  the same row-top and row-meta containers as a real row, so it inherits their
+ *  line heights and lands on the same height rather than a guessed one. */
+function RowSkeleton() {
+  return (
+    <div className="row skel" style={{ ["--c" as string]: "var(--line)" }}>
+      <div className="row-top">
+        <span className="ref">&nbsp;</span>
+        <span className="row-title"><span className="skel-bar" style={{ width: "44%" }} /></span>
+      </div>
+      <div className="row-meta"><span className="skel-bar" style={{ width: "26%", height: 8 }} /></div>
+    </div>
+  );
+}
+
 function ago(iso: string) {
   const s = (Date.now() - new Date(iso).getTime()) / 1000;
   if (s < 60) return "just now";
@@ -57,7 +72,9 @@ export default function AppPage() {
   const [teamId, setTeamId] = useState("");
   const [projects, setProjects] = useState<Project[]>([]);
   const [project, setProject] = useState("all");
-  const [features, setFeatures] = useState<Feature[]>([]);
+  // Null until the first response lands. An empty array means the team really
+  // has no features, which is a different thing and gets a different screen.
+  const [features, setFeatures] = useState<Feature[] | null>(null);
   const [filter, setFilter] = useState("all");
   const [q, setQ] = useState("");
   const [theme, setTheme] = useState("light");
@@ -187,7 +204,8 @@ export default function AppPage() {
 
   if (loading) return <div className="wrap" style={{ paddingTop: 40 }}><p className="hint">Loading</p></div>;
 
-  const shown = filter === "all" ? features : features.filter((f) => f.status === filter);
+  const loaded = features ?? [];
+  const shown = filter === "all" ? loaded : loaded.filter((f) => f.status === filter);
   // Null on the All tab, which has nothing to rename or delete.
   const current = projects.find((p) => p.id === project) ?? null;
 
@@ -220,7 +238,7 @@ export default function AppPage() {
         <div className="tabs">
           <div className="tab-list">
             <button className="tab" aria-selected={project === "all"} onClick={() => setProject("all")}>
-              All<span className="n">{features.length}</span>
+              All<span className="n">{loaded.length}</span>
             </button>
             {projects.map((p) => (
               <button key={p.id} className="tab" aria-selected={project === p.id} onClick={() => setProject(p.id)}>
@@ -245,18 +263,24 @@ export default function AppPage() {
 
         <div className="filters">
           <button className="chip" aria-pressed={filter === "all"} onClick={() => setFilter("all")}>
-            All<b>{features.length}</b>
+            All<b>{loaded.length}</b>
           </button>
           {STAGES.map((s) => (
             <button key={s.id} className="chip" aria-pressed={filter === s.id} onClick={() => setFilter(s.id)}>
-              {s.label}<b>{features.filter((f) => f.status === s.id).length}</b>
+              {s.label}<b>{loaded.filter((f) => f.status === s.id).length}</b>
             </button>
           ))}
           <input className="field" placeholder="Search titles, specs and notes" value={q}
             onChange={(e) => setQ(e.target.value)} style={{ marginLeft: "auto", minWidth: 220 }} />
         </div>
 
-        {shown.length === 0 ? (
+        {features === null ? (
+          <div role="status" aria-busy="true" aria-label="Loading features">
+            <RowSkeleton />
+            <RowSkeleton />
+            <RowSkeleton />
+          </div>
+        ) : shown.length === 0 ? (
           <div className="empty">
             Nothing here yet. Hit <b>New feature</b> and write one sentence.
           </div>

@@ -87,7 +87,19 @@ export default function FeaturePage({ params }: { params: Promise<{ id: string }
     router.push("/app");
   }
 
-  if (!f) return <div className="wrap" style={{ paddingTop: 40 }}><p className="hint">Loading</p></div>;
+  if (!f) {
+    return (
+      <div className="wrap" style={{ paddingTop: 34 }}
+        role="status" aria-busy="true" aria-label="Loading the feature">
+        <div className="skel">
+          <div className="skel-bar" style={{ width: "58%", height: 22, borderRadius: 7 }} />
+          <div className="skel-bar" style={{ width: 210, height: 9, marginTop: 14 }} />
+          <div className="skel-bar" style={{ width: "100%", height: 46, borderRadius: 10, marginTop: 26 }} />
+          <div className="skel-bar" style={{ width: "100%", height: 120, borderRadius: 12, marginTop: 22 }} />
+        </div>
+      </div>
+    );
+  }
 
   const answers = f.answers ?? {};
   const checks = answers.check ?? [];

@@ -283,6 +283,21 @@ kbd {
 
 .stack { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
 
+/* ---------- loading skeletons ---------- */
+/* An empty array means genuinely empty and gets the empty state. Null means
+   the request has not come back, and gets these. Conflating the two is what
+   made the feature list announce "nothing here yet" while the data was still
+   in flight. Shaped like the rows they stand in for, so nothing jumps. */
+.skel { pointer-events: none; animation: skel 1.3s ease-in-out infinite; }
+/* inline-block, not block: inside a real .row-title or .row-meta the parent's
+   font strut then still sets the line height, so the placeholder row comes out
+   the same height as the row it replaces instead of collapsing around the bar. */
+.skel-bar {
+  display: inline-block; vertical-align: middle;
+  height: 10px; border-radius: 5px; background: var(--line-hi); opacity: .5;
+}
+@keyframes skel { 50% { opacity: .55; } }
+
 /* ---------- people ---------- */
 .members { display: flex; flex-direction: column; gap: 8px; margin-top: 22px; }
 .member {
@@ -412,5 +427,5 @@ footer { border-top: 1px solid var(--line); padding: 26px 0; color: var(--faint)
 }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
-  .modal, .modal::backdrop { animation: none; }
+  .modal, .modal::backdrop, .skel { animation: none; }
 }

@@ -13,6 +13,20 @@ type Member = {
 };
 type Me = { userId: string; role: string };
 
+/** Stands in for a member row during the first load, same height and shape so
+ *  the list does not jump when the real ones arrive. */
+function MemberSkeleton() {
+  return (
+    <div className="member skel">
+      <span className="av" style={{ background: "var(--line-hi)", opacity: .5 }} />
+      <div className="member-id">
+        <div className="member-name"><span className="skel-bar" style={{ width: 132 }} /></div>
+        <div className="member-mail"><span className="skel-bar" style={{ width: 186, height: 8 }} /></div>
+      </div>
+    </div>
+  );
+}
+
 function joined(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, {
     day: "numeric", month: "short", year: "numeric",
@@ -26,7 +40,9 @@ function People() {
 
   const [teams, setTeams] = useState<Team[]>([]);
   const [teamId, setTeamId] = useState("");
-  const [members, setMembers] = useState<Member[]>([]);
+  // Null until the first response lands, so the page never claims the team has
+  // nobody in it while the request is still going.
+  const [members, setMembers] = useState<Member[] | null>(null);
   const [me, setMe] = useState<Me | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -56,7 +72,8 @@ function People() {
 
   const team = teams.find((t) => t.id === teamId);
   const isAdmin = me?.role === "admin";
-  const adminCount = members.filter((m) => m.role === "admin").length;
+  const loaded = members ?? [];
+  const adminCount = loaded.filter((m) => m.role === "admin").length;
 
   async function addMember() {
     const email = await ask({
@@ -148,8 +165,24 @@ function People() {
         <h1 style={{ fontSize: 24, fontWeight: 600, letterSpacing: "-0.03em", margin: "0 0 6px" }}>
           People
         </h1>
+        {members === null ? (
+          <div role="status" aria-busy="true" aria-label="Loading the team">
+            {/* Reserves the height of the sentence and the button row, so the
+                real content drops in rather than shoving the list down. */}
+            <div className="skel">
+              <div className="skel-bar" style={{ width: 330, marginTop: 6 }} />
+              <div className="skel-bar" style={{ width: 232, height: 34, borderRadius: 8, marginTop: 18 }} />
+            </div>
+            <div className="members">
+              <MemberSkeleton />
+              <MemberSkeleton />
+              <MemberSkeleton />
+            </div>
+          </div>
+        ) : (
+          <>
         <p className="hint" style={{ margin: 0 }}>
-          {members.length} {members.length === 1 ? "person" : "people"} in {team.name}.
+          {loaded.length} {loaded.length === 1 ? "person" : "people"} in {team.name}.
           {isAdmin
             ? " Admins can add, promote and remove. A team always keeps at least one admin."
             : " Only admins can change this list."}
@@ -163,7 +196,7 @@ function People() {
         )}
 
         <div className="members">
-          {members.map((m) => {
+          {loaded.map((m) => {
             const self = m.userId === me?.userId;
             // The last admin cannot go, so do not offer it.
             const lastAdmin = m.role === "admin" && adminCount === 1;
@@ -212,6 +245,8 @@ function People() {
             );
           })}
         </div>
+          </>
+        )}
       </div>
       {modal}
     </>

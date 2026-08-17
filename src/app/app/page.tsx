@@ -206,12 +206,8 @@ export default function AppPage() {
       />
 
       <div className="wrap">
-        {/* Creating a feature lives here rather than in the bar, because it
-            needs a team and a project to put it in, and this is the only screen
-            where both are already chosen. Any member can use it. */}
         <div className="page-head">
           <h1>Features</h1>
-          <button className="btn" onClick={newFeature}>New feature</button>
         </div>
 
         <div className="tabs">
@@ -259,11 +255,28 @@ export default function AppPage() {
             <RowSkeleton />
             <RowSkeleton />
           </div>
-        ) : shown.length === 0 ? (
-          <div className="empty">
-            Nothing here yet. Hit <b>New feature</b> and write one sentence.
-          </div>
         ) : (
+          <>
+            {/* At the top of the list, where a new feature will actually
+                appear, rather than as a button in the heading detached from
+                what it acts on. Creating needs a team and a project, and this
+                is the only screen where both are already chosen. */}
+            <button className="add-card" onClick={newFeature}>
+              <span className="plus" aria-hidden="true">+</span>
+              <span>
+                <b>New feature</b>
+                <small>One sentence is enough, you specify it next</small>
+              </span>
+            </button>
+            {shown.length === 0 && (
+              <div className="empty">
+                Nothing here yet. Every feature starts as one sentence.
+              </div>
+            )}
+          </>
+        )}
+
+        {features !== null && (
           shown.map((f) => {
             const gaps = missingCount(f.answers);
             const proj = projects.find((p) => p.id === f.projectId)?.name;

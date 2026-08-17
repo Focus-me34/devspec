@@ -24,8 +24,13 @@ export type Spec = {
   cancelLabel?: string;
   /** Red confirm button, for anything that destroys data. */
   danger?: boolean;
-  /** Shown under the message in a selectable block, for links and the like. */
+  /** Shown under the message in a selectable block with a Copy button, for
+   *  links and the like. Never copied automatically: taking somebody's
+   *  clipboard without asking destroys whatever they had in it. */
   detail?: string;
+  /** A quieter third action, left of Cancel. Dismisses this dialog and runs
+   *  onPick, which is free to open another one. */
+  secondary?: { label: string; onPick: () => void };
   /** ask() only. */
   placeholder?: string;
   initial?: string;
@@ -37,6 +42,10 @@ function Dialog({ pending, onClosed }: { pending: Pending | null; onClosed: () =
   const ref = useRef<HTMLDialogElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [value, setValue] = useState("");
+  const [copied, setCopied] = useState(false);
+  /** Held until the dialog has actually closed, so the secondary action can
+   *  open the next dialog without the two fighting over the same element. */
+  const afterClose = useRef<(() => void) | null>(null);
   /** What this dialog will resolve with. A native close, meaning Escape or a
    *  backdrop click, leaves it at the cancel value. */
   const outcome = useRef<unknown>(null);
@@ -45,6 +54,7 @@ function Dialog({ pending, onClosed }: { pending: Pending | null; onClosed: () =
     const el = ref.current;
     if (!el || !pending || el.open) return;
     setValue(pending.initial ?? "");
+    setCopied(false);
     outcome.current = pending.kind === "confirm" ? false : pending.kind === "ask" ? null : undefined;
     el.showModal();
     if (pending.kind === "ask") {
@@ -72,13 +82,34 @@ function Dialog({ pending, onClosed }: { pending: Pending | null; onClosed: () =
       ref={ref}
       className="modal"
       aria-labelledby="modal-title"
-      onClose={() => { pending.settle(outcome.current); onClosed(); }}
+      onClose={() => {
+        pending.settle(outcome.current);
+        onClosed();
+        const next = afterClose.current;
+        afterClose.current = null;
+        next?.();
+      }}
       onClick={(e) => { if (e.target === ref.current) ref.current?.close(); }}
     >
       <form method="dialog" onSubmit={(e) => { e.preventDefault(); accept(); }}>
         <h2 id="modal-title">{title}</h2>
         {message && <p>{message}</p>}
-        {pending.detail && <p className="modal-detail">{pending.detail}</p>}
+        {pending.detail && (
+          <div className="modal-detail-row">
+            <p className="modal-detail">{pending.detail}</p>
+            <button type="button" className="btn ghost" onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(pending.detail!);
+                setCopied(true);
+              } catch {
+                // Clipboard refused, which is fine: the text is right there
+                // and selectable, so there is nothing to recover from.
+              }
+            }}>
+              {copied ? "Copied" : "Copy"}
+            </button>
+          </div>
+        )}
 
         {kind === "ask" && (
           <input
@@ -91,6 +122,14 @@ function Dialog({ pending, onClosed }: { pending: Pending | null; onClosed: () =
         )}
 
         <div className="modal-actions">
+          {pending.secondary && (
+            <button type="button" className="btn plain modal-alt" onClick={() => {
+              afterClose.current = pending.secondary!.onPick;
+              ref.current?.close();
+            }}>
+              {pending.secondary.label}
+            </button>
+          )}
           {kind !== "notify" && (
             <button type="button" className="btn ghost" onClick={() => ref.current?.close()}>
               {pending.cancelLabel ?? "Cancel"}

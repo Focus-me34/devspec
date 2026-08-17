@@ -79,9 +79,10 @@ function People() {
   async function addMember() {
     const email = await ask({
       title: "Add someone",
-      message: "They need a DevSpec account already. If they do not have one, send them an invite link instead.",
+      message: "Type the email of someone who already has a DevSpec account, or share a link with someone who does not.",
       placeholder: "them@company.com",
       confirmLabel: "Add",
+      secondary: { label: "Share a link instead", onPick: inviteLink },
     });
     if (!email) return;
     const res = await fetch(`/api/teams/${teamId}/members`, {
@@ -98,15 +99,13 @@ function People() {
     const data = await res.json();
     if (!res.ok) return notify({ title: "Could not create an invite", message: data.error });
 
-    const url = `${location.origin}/invite?t=${data.token}`;
-    let copied = false;
-    try { await navigator.clipboard.writeText(url); copied = true; } catch { /* shown below instead */ }
-
+    // Deliberately not copied for you. Overwriting somebody's clipboard
+    // uninvited can throw away whatever they were carrying in it.
     notify({
-      title: copied ? "Invite link copied" : "Invite link",
-      message: `${copied ? "Paste it wherever you talk to them." : "Copy this and send it to them."} `
-        + `Anyone who opens it joins ${team?.name ?? "the team"}, and it stops working after ${data.expiresInDays} days.`,
-      detail: url,
+      title: "Invite link",
+      message: `Anyone who opens this joins ${team?.name ?? "the team"}, `
+        + `and it stops working after ${data.expiresInDays} days.`,
+      detail: `${location.origin}/invite?t=${data.token}`,
       confirmLabel: "Done",
     });
   }
@@ -156,16 +155,15 @@ function People() {
         onTeamChange={(id) => router.push(`/app/team?team=${id}`)} />
 
       <div className="wrap">
-        <h1 style={{ fontSize: 24, fontWeight: 600, letterSpacing: "-0.03em", margin: "0 0 6px" }}>
-          People
-        </h1>
+        <div className="page-head">
+          <h1>People</h1>
+        </div>
         {members === null ? (
           <div role="status" aria-busy="true" aria-label="Loading the team">
-            {/* Reserves the height of the sentence and the button row, so the
-                real content drops in rather than shoving the list down. */}
+            {/* Reserves the height of the sentence, so the real content drops
+                in rather than shoving the list down. */}
             <div className="skel">
-              <div className="skel-bar" style={{ width: 330, marginTop: 6 }} />
-              <div className="skel-bar" style={{ width: 232, height: 34, borderRadius: 8, marginTop: 18 }} />
+              <div className="skel-bar" style={{ width: 330, marginTop: 2 }} />
             </div>
             <div className="members">
               <MemberSkeleton />
@@ -182,14 +180,19 @@ function People() {
             : " Only admins can change this list."}
         </p>
 
-        {isAdmin && (
-          <div className="stack" style={{ marginTop: 16 }}>
-            <button className="btn" onClick={addMember}>Add someone</button>
-            <button className="btn ghost" onClick={inviteLink}>Invite link</button>
-          </div>
-        )}
-
         <div className="members">
+          {/* Same shape as the feature list: the way to add sits at the top of
+              the thing it adds to. Invite link stays a button in the heading,
+              since it is the secondary path and does not produce a row here. */}
+          {isAdmin && (
+            <button className="add-card" onClick={addMember}>
+              <span className="plus" aria-hidden="true">+</span>
+              <span>
+                <b>Add someone</b>
+                <small>They need a DevSpec account already</small>
+              </span>
+            </button>
+          )}
           {loaded.map((m) => {
             const self = m.userId === me?.userId;
             // The last admin cannot go, so do not offer it.

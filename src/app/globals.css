@@ -126,6 +126,9 @@ select.field { cursor: pointer; }
   color: var(--faint); font-size: 13px; font-weight: 500;
 }
 .btn.plain:hover { color: var(--text); filter: none; }
+/* Sat 0.5px larger than the sentence around it and on its own baseline,
+   because .btn is inline-flex. Inside running text it must match the words. */
+.hint .btn.plain { font-size: inherit; vertical-align: baseline; }
 .btn.plain.danger:hover { color: #E11D48; }
 .btn.icon {
   width: 34px; height: 34px; padding: 0; justify-content: center;
@@ -339,6 +342,45 @@ kbd {
    same box or the layout shifts the moment somebody uploads one. */
 .av-img { object-fit: cover; background: var(--surface-hi); }
 
+/* ---------- add card ---------- */
+/* Sits at the top of a list, where the new item will actually appear, rather
+   than as a button in the heading detached from what it acts on. Dashed and
+   quiet so it reads as a slot waiting to be filled, not as a record. */
+.add-card {
+  display: flex; align-items: center; gap: 13px; width: 100%; text-align: left;
+  border-radius: 11px; padding: 14px 17px 13px; margin-bottom: 8px;
+  border: 1px dashed color-mix(in srgb, var(--brand-a) 45%, transparent);
+  background: color-mix(in srgb, var(--brand-a) 5%, transparent);
+  transition: border-color .15s, background-color .15s, transform .13s;
+}
+.add-card:hover {
+  border-color: var(--brand-a);
+  background: color-mix(in srgb, var(--brand-a) 11%, transparent);
+}
+.add-card:active { transform: translateY(1px); }
+/* The plus carries the primary gradient, the same one the main button uses, so
+   this reads as the primary action of the list it sits on. */
+.add-card .plus {
+  flex: none; display: grid; place-items: center;
+  width: 28px; height: 28px; border-radius: 8px;
+  font-size: 17px; line-height: 1; font-weight: 500;
+  color: var(--btn-fg);
+  background: linear-gradient(135deg, var(--brand-a), var(--brand-b));
+  box-shadow: 0 4px 12px -6px var(--brand-a);
+}
+/* Sized from the row it sits above rather than by eye, so the two line up:
+   the title matches .row-title and the hint matches .row-meta, which lands the
+   card on the same height as a feature. */
+.add-card b { display: block; font-size: 15px; font-weight: 600; color: var(--brand-a); }
+.add-card small {
+  display: block; margin-top: 3px; font-size: 12.5px;
+  color: color-mix(in srgb, var(--brand-a) 62%, var(--faint));
+}
+/* A member row is shorter than a feature row, so the card in that list has to
+   be too. Same trick: match .member-name and the tighter padding. */
+.members .add-card { padding: 12px 14px; }
+.members .add-card b { font-size: 14px; }
+
 /* ---------- page heading with an action ---------- */
 .page-head {
   display: flex; align-items: center; justify-content: space-between;
@@ -421,6 +463,12 @@ kbd {
 .auth p { color: var(--faint); margin: 0 0 20px; }
 .auth .field { width: 100%; margin-bottom: 10px; }
 .auth .btn { width: 100%; justify-content: center; }
+/* The full width rule above is for the submit button. A .plain button here is
+   a word inside a sentence, and stretching it to 100% is what pushed "Create a
+   team" onto its own centred line instead of following "No account yet?". */
+.auth .btn.plain { width: auto; justify-content: flex-start; }
+/* The whole sentence centres under the form, rather than one half of it. */
+.auth .hint { text-align: center; }
 .err { color: #E11D48; font-size: 13px; margin: 8px 0 0; }
 
 /* ---------- invite ---------- */
@@ -500,7 +548,13 @@ footer { border-top: 1px solid var(--line); padding: 26px 0; color: var(--faint)
   background: var(--surface-hi); border: 1px solid var(--line);
   border-radius: 8px; padding: 10px 12px; margin-top: 14px !important;
 }
+.modal-detail-row { display: flex; align-items: stretch; gap: 8px; }
+.modal-detail-row .modal-detail { flex: 1; min-width: 0; }
+.modal-detail-row .btn { flex: none; align-self: stretch; margin-top: 14px; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+/* Pushed away from the confirm pair, so the quiet alternative does not read as
+   part of the Cancel/Confirm decision. */
+.modal-alt { margin-right: auto; }
 /* Solid danger, for the modal's confirm only. The exclusions matter: .plain is
    the quiet text variant and .ghost is the bordered one used for sign out.
    Without them this rule ties on specificity and wins purely by coming later

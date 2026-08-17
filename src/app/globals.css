@@ -157,8 +157,23 @@ kbd {
   box-shadow: 0 0 12px color-mix(in srgb, var(--brand-a) 60%, transparent);
 }
 .logo small { color: var(--faint); font-weight: 400; letter-spacing: 0; }
+/* Two groups with the gap between them doing the work: where you are and where
+   you can go on the left, your own account on the right. Fixed order on every
+   page, which is what the old per-page bar never had. */
+.bar-left { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; min-width: 0; }
 .bar-right { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
 .bar-nav { display: flex; align-items: center; gap: 2px; }
+.bar-teams { max-width: 180px; }
+
+.profile-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  max-width: 190px; padding: 4px 11px 4px 5px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 999px;
+  color: var(--dim); font-size: 13px; font-weight: 500; text-decoration: none;
+  transition: color .15s, border-color .15s;
+}
+.profile-btn:hover { color: var(--text); border-color: var(--line-hi); }
+.profile-btn span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .navlink {
   font-size: 13.5px; font-weight: 500; color: var(--faint); text-decoration: none;
   padding: 6px 10px; border-radius: 7px; transition: color .15s, background-color .15s;
@@ -319,6 +334,34 @@ kbd {
 
 .stack { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
 .field.grow { flex: 1 1 240px; min-width: 0; }
+
+/* An avatar is either a photo or initials, and both must occupy exactly the
+   same box or the layout shifts the moment somebody uploads one. */
+.av-img { object-fit: cover; background: var(--surface-hi); }
+
+/* ---------- page heading with an action ---------- */
+.page-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 14px; flex-wrap: wrap; margin-bottom: 18px;
+}
+.page-head h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.03em; margin: 0; }
+
+/* ---------- profile ---------- */
+.prose h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.03em; margin: 0 0 6px; }
+.lbl-f { display: block; }
+.lbl-f > span:first-child {
+  display: block; font-size: 13px; font-weight: 500; color: var(--dim); margin-bottom: 6px;
+}
+.lbl-f .field { width: 100%; }
+.lbl-f .field:disabled {
+  color: var(--faint); background: var(--surface-hi); cursor: not-allowed;
+}
+.lbl-f .q-hint { margin: 6px 0 0; }
+.field-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+.field-row .lbl-f { flex: 1 1 170px; min-width: 0; }
+.field-row .lbl-f:first-child { flex: 0 1 120px; }
+.avatar-row { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 22px; }
+.avatar-actions { min-width: 0; }
 
 /* ---------- loading skeletons ---------- */
 /* An empty array means genuinely empty and gets the empty state. Null means

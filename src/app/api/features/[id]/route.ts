@@ -1,4 +1,4 @@
-import { db, features, projects, notes, activity, members } from "@/db";
+import { db, features, projects, notes, activity, members, users } from "@/db";
 import { eq, asc } from "drizzle-orm";
 import { requireMember, fail, HttpError } from "@/lib/guard";
 
@@ -16,7 +16,14 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
     const row = await load(id);
     await requireMember(row.teamId);
     const [ns, act, current] = await Promise.all([
-      db.select().from(notes).where(eq(notes.featureId, id)).orderBy(asc(notes.createdAt)),
+      // Left join, because a note may predate author_id or its author may have
+      // been deleted. The name on the note stands on its own either way.
+      db.select({
+        id: notes.id, authorId: notes.authorId, authorName: notes.authorName,
+        body: notes.body, createdAt: notes.createdAt,
+        authorAvatar: users.avatar,
+      }).from(notes).leftJoin(users, eq(users.id, notes.authorId))
+        .where(eq(notes.featureId, id)).orderBy(asc(notes.createdAt)),
       db.select().from(activity).where(eq(activity.featureId, id)).orderBy(asc(activity.createdAt)),
       db.select({ userId: members.userId }).from(members).where(eq(members.teamId, row.teamId)),
     ]);

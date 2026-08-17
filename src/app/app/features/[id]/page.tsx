@@ -2,11 +2,10 @@
 
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { QUESTIONS, STAGES, missingCount, checksOf } from "@/lib/spec";
 import { useModal } from "@/components/Modal";
 import AppBar from "@/components/AppBar";
-import { initials, tint } from "@/lib/avatar";
+import Avatar from "@/components/Avatar";
 import type { Answers } from "@/db/schema";
 
 type Feature = {
@@ -19,6 +18,7 @@ type Note = {
   /** True only when we know: the author has an id and it is no longer in the
    *  team. Notes predating author_id report false rather than guessing. */
   authorLeft: boolean;
+  authorAvatar: string | null;
 };
 type Act = { id: string; actorName: string; fromStatus: string | null; toStatus: string; createdAt: string };
 
@@ -125,9 +125,7 @@ export default function FeaturePage({ params }: { params: Promise<{ id: string }
 
   return (
     <>
-      <AppBar teamName={projectName}>
-        <Link href="/app" className="btn ghost">&larr; All features</Link>
-      </AppBar>
+      <AppBar />
 
       <div className="wrap">
         <input className="field" value={f.title}
@@ -245,7 +243,7 @@ export default function FeaturePage({ params }: { params: Promise<{ id: string }
             </p>
           ) : notes.map((n) => (
             <div className={`note${n.authorLeft ? " gone" : ""}`} key={n.id}>
-              <span className="av" style={{ background: tint(n.authorName) }}>{initials(n.authorName)}</span>
+              <Avatar name={n.authorName} src={n.authorAvatar} />
               <div className="note-main">
                 <div className="note-head">
                   <b>{n.authorName}</b>

@@ -68,7 +68,6 @@ function ago(iso: string) {
 export default function AppPage() {
   const router = useRouter();
   const { ask, confirm, notify, modal } = useModal();
-  const [me, setMe] = useState<{ name: string } | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
   const [teamId, setTeamId] = useState("");
   const [projects, setProjects] = useState<Project[]>([]);
@@ -86,7 +85,6 @@ export default function AppPage() {
       if (res.status === 401) return router.push("/login");
       const data = await res.json();
       setTeams(data.teams);
-      setMe(data.me);
       if (data.teams[0]) setTeamId(data.teams[0].id);
       setLoading(false);
     })();
@@ -200,16 +198,22 @@ export default function AppPage() {
 
   return (
     <>
-      <AppBar teamName={teams.find((t) => t.id === teamId)?.name} teamId={teamId} userName={me?.name}>
-        <select className="field bar-teams" value={teamId} aria-label="Team"
-          onChange={(e) => { setTeamId(e.target.value); setProject("all"); }}>
-          {teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
-        </select>
-        <button className="btn ghost" onClick={newTeam}>New team</button>
-        <button className="btn" onClick={newFeature}>New feature</button>
-      </AppBar>
+      <AppBar
+        teams={teams}
+        teamId={teamId}
+        onTeamChange={(id) => { setTeamId(id); setProject("all"); }}
+        onNewTeam={newTeam}
+      />
 
       <div className="wrap">
+        {/* Creating a feature lives here rather than in the bar, because it
+            needs a team and a project to put it in, and this is the only screen
+            where both are already chosen. Any member can use it. */}
+        <div className="page-head">
+          <h1>Features</h1>
+          <button className="btn" onClick={newFeature}>New feature</button>
+        </div>
+
         <div className="tabs">
           <div className="tab-list">
             <button className="tab" aria-selected={project === "all"} onClick={() => setProject("all")}>

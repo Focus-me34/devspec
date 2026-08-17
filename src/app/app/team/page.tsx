@@ -152,7 +152,8 @@ function People() {
 
   return (
     <>
-      <AppBar teamName={team.name} teamId={team.id} />
+      <AppBar teams={teams} teamId={team.id}
+        onTeamChange={(id) => router.push(`/app/team?team=${id}`)} />
 
       <div className="wrap">
         <h1 style={{ fontSize: 24, fontWeight: 600, letterSpacing: "-0.03em", margin: "0 0 6px" }}>

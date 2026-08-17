@@ -19,7 +19,19 @@ export type Answers = {
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
   email: text("email").notNull(),
+  /** Display name, kept because notes, activity and the member list all read
+   *  it. Recomputed from first and last name whenever the profile is saved,
+   *  so there is still exactly one name to render anywhere. */
   name: text("name").notNull(),
+  title: text("title"),
+  firstName: text("first_name"),
+  lastName: text("last_name"),
+  phone: text("phone"),
+  /** A small square image as a data URL, resized in the browser before it is
+   *  sent. Stored inline rather than in blob storage: it avoids a dependency,
+   *  an env var and a second service for a few tens of kilobytes per person.
+   *  Swap to Vercel Blob if this ever holds more than avatars. */
+  avatar: text("avatar"),
   passwordHash: text("password_hash").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => ({ emailIdx: uniqueIndex("users_email_idx").on(t.email) }));

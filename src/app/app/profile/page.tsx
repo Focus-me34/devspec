@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import AppBar from "@/components/AppBar";
 import Avatar from "@/components/Avatar";
+import { ME_CHANGED } from "@/lib/theme";
 
 type Me = {
   id: string; email: string; name: string;
@@ -100,7 +101,8 @@ export default function ProfilePage() {
       if (!res.ok) throw new Error(data.error);
       setMe(data.me);
       setSaved(true);
-      router.refresh();
+      // The bar shows this name and this face; tell it to catch up.
+      window.dispatchEvent(new Event(ME_CHANGED));
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Could not save");
     } finally {

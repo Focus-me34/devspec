@@ -91,6 +91,17 @@ button { font: inherit; cursor: pointer; }
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-a) 16%, transparent);
 }
 textarea.field { width: 100%; resize: vertical; line-height: 1.6; }
+
+/* The native arrow sits hard against the right edge and ignores padding, so we
+   draw our own and give it room. One neutral grey, legible on both themes. */
+select.field {
+  appearance: none; -webkit-appearance: none;
+  padding-right: 32px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2379869B' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 11px center;
+  background-size: 13px;
+}
 select.field { cursor: pointer; }
 
 .btn {
@@ -163,20 +174,44 @@ kbd {
 /* Two groups with the gap between them doing the work: where you are and where
    you can go on the left, your own account on the right. Fixed order on every
    page, which is what the old per-page bar never had. */
-.bar-left { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; min-width: 0; }
-.bar-right { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
-.bar-nav { display: flex; align-items: center; gap: 2px; }
+/* One height for every control in the bar. They were six different heights
+   before, set by whatever padding each class happened to carry, which is what
+   made the row look ragged. Height here, padding for width only. */
+.bar-in { --bar-h: 34px; }
+.bar-left { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; }
+.bar-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.bar-nav { display: flex; align-items: center; gap: 3px; }
 .bar-teams { max-width: 180px; }
 
-.profile-btn {
-  display: inline-flex; align-items: center; gap: 8px;
-  max-width: 190px; padding: 4px 11px 4px 5px;
-  background: var(--surface); border: 1px solid var(--line); border-radius: 999px;
-  color: var(--dim); font-size: 13px; font-weight: 500; text-decoration: none;
-  transition: color .15s, border-color .15s;
+.bar .field,
+.bar .btn,
+.bar .navlink,
+.bar .profile-btn {
+  height: var(--bar-h);
+  padding-top: 0; padding-bottom: 0;
+  display: inline-flex; align-items: center;
 }
-.profile-btn:hover { color: var(--text); border-color: var(--line-hi); }
-.profile-btn span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bar .btn.icon { width: var(--bar-h); padding: 0; justify-content: center; }
+.bar .navlink { gap: 7px; }
+.bar .navlink svg, .bar .btn svg { width: 15px; height: 15px; flex: none; }
+
+/* At rest it is just a face and a name, which is enough to read as "you".
+   The pill only appears on hover, so it does not sit there competing with the
+   controls next to it. */
+.profile-btn {
+  gap: 9px; max-width: 200px; padding: 0 13px 0 4px;
+  border: 1px solid transparent; border-radius: 999px; background: transparent;
+  color: var(--dim); font-size: 13px; font-weight: 500; text-decoration: none;
+  transition: color .15s, background-color .15s, border-color .15s;
+}
+.profile-btn:hover {
+  color: var(--text);
+  background: var(--surface); border-color: var(--line);
+}
+.profile-btn .av { width: 26px; height: 26px; font-size: 10px; }
+.profile-btn > span:last-child {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
 .navlink {
   font-size: 13.5px; font-weight: 500; color: var(--faint); text-decoration: none;
   padding: 6px 10px; border-radius: 7px; transition: color .15s, background-color .15s;
@@ -219,9 +254,9 @@ kbd {
 }
 
 .filters { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 18px; align-items: center; }
-/* Wide enough for its own placeholder. It used to be 220px, which clipped
-   "Search titles, specs and notes" mid-word. */
-.search { margin-left: auto; flex: 0 1 300px; min-width: 268px; }
+/* Its own row, full width, left aligned. Sharing the chip row meant it was
+   pushed right by margin-left:auto and squeezed to whatever was left over. */
+.search { display: block; width: 100%; margin-bottom: 12px; }
 .chip {
   background: transparent; border: 1px solid transparent; color: var(--faint);
   font-family: var(--mono); font-size: 10.5px; font-weight: 500;
@@ -315,7 +350,9 @@ kbd {
 
 .note { display: flex; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--line); }
 .note:last-of-type { border-bottom: none; }
-.av { flex: none; width: 28px; height: 28px; border-radius: 8px; margin-top: 2px; display: grid; place-items: center; font-family: var(--mono); font-size: 11px; font-weight: 600; color: #fff; }
+/* Round, because these are people. Teams keep a squircle (.invite-badge), so
+   the two never read as the same kind of thing. */
+.av { flex: none; width: 28px; height: 28px; border-radius: 50%; margin-top: 2px; display: grid; place-items: center; font-family: var(--mono); font-size: 11px; font-weight: 600; color: #fff; }
 /* min-width:0 because a flex item defaults to min-width:auto and refuses to
    shrink below its content, which is how one long unbroken word or URL used to
    push a note straight off the page. overflow-wrap then breaks that word. */
@@ -434,8 +471,23 @@ kbd {
   color: var(--faint); font-size: 12.5px;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
+/* Whatever the person filled in, as things you can act on: one click to write
+   to them, one to call. Wraps rather than truncating, since a phone number cut
+   in half is worse than useless. */
+.member-title {
+  font-family: var(--mono); font-size: 9.5px; font-weight: 500;
+  letter-spacing: .09em; text-transform: uppercase; color: var(--faint);
+  margin-right: 2px;
+}
+.member-contact { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 2px; }
+.member-contact a {
+  font-size: 12.5px; color: var(--faint); text-decoration: none;
+  transition: color .15s;
+}
+.member-contact a:hover { color: var(--brand-a); text-decoration: underline; }
+.member .av { align-self: flex-start; }
 .member-when { flex: none; color: var(--faint); font-size: 12.5px; }
-.member-role { flex: none; padding: 5px 8px; font-size: 12.5px; }
+.member-role { flex: none; padding: 5px 30px 5px 10px; font-size: 12.5px; }
 .member-role:disabled { opacity: .55; cursor: not-allowed; }
 .icon-btn:disabled { opacity: .3; cursor: not-allowed; }
 .icon-btn:disabled:hover { color: var(--faint); background: none; border-color: transparent; }

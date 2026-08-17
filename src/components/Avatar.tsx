@@ -15,7 +15,9 @@ export default function Avatar({
   size?: number;
   className?: string;
 }) {
-  const style = size ? { width: size, height: size, borderRadius: Math.round(size / 3.4) } : undefined;
+  // Only the box is set here. The round corner comes from .av, so every avatar
+  // in the app changes shape in one place rather than several.
+  const style = size ? { width: size, height: size, fontSize: Math.round(size / 2.6) } : undefined;
 
   if (src) {
     return (

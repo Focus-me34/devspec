@@ -8,6 +8,8 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
   try {
     const { id } = await ctx.params;
     const { user, member } = await requireMember(id);
+    // Everything the person chose to fill in, so a colleague can call or write
+    // to them from here rather than going hunting for it.
     const rows = await db.select({
       id: members.id,
       userId: members.userId,
@@ -15,6 +17,9 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
       joinedAt: members.createdAt,
       name: users.name,
       email: users.email,
+      title: users.title,
+      phone: users.phone,
+      avatar: users.avatar,
     })
       .from(members).innerJoin(users, eq(members.userId, users.id))
       .where(eq(members.teamId, id))

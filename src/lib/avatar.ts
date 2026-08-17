@@ -8,8 +8,14 @@ export function initials(n: string) {
     .map((w) => w[0].toUpperCase()).join("") || "?";
 }
 
+/** Kept inside the brand band, cyan through blue, deliberately stopping short
+ *  of violet: the old range ran to hue 285 and handed some people a purple that
+ *  belonged to nothing else in the app. Lightness varies in three steps so
+ *  names are still told apart within the narrower band. */
 export function tint(n: string) {
   let h = 0;
-  for (const c of n) h = (h * 31 + c.charCodeAt(0)) % 360;
-  return `hsl(${(h % 100) + 185} 62% 42%)`;
+  for (const c of n) h = (h * 31 + c.charCodeAt(0)) % 9973;
+  const hue = 189 + (h % 42);
+  const lightness = 38 + (h % 3) * 6;
+  return `hsl(${hue} 58% ${lightness}%)`;
 }

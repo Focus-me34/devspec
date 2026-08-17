@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, useCallback, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { STAGES, missingCount } from "@/lib/spec";
 import { useModal } from "@/components/Modal";
@@ -65,8 +65,9 @@ function ago(iso: string) {
   return new Date(iso).toLocaleDateString();
 }
 
-export default function AppPage() {
+function FeatureList() {
   const router = useRouter();
+  const params = useSearchParams();
   const { ask, confirm, notify, modal } = useModal();
   const [teams, setTeams] = useState<Team[]>([]);
   const [teamId, setTeamId] = useState("");
@@ -85,10 +86,13 @@ export default function AppPage() {
       if (res.status === 401) return router.push("/login");
       const data = await res.json();
       setTeams(data.teams);
-      if (data.teams[0]) setTeamId(data.teams[0].id);
+      // Honour ?team= so switching team from the bar works from any page.
+      const wanted = params.get("team");
+      const pick = data.teams.find((t: Team) => t.id === wanted) ?? data.teams[0];
+      if (pick) setTeamId(pick.id);
       setLoading(false);
     })();
-  }, [router]);
+  }, [router, params]);
 
   const reload = useCallback(async () => {
     if (!teamId) return;
@@ -101,6 +105,15 @@ export default function AppPage() {
   }, [teamId, project, q]);
 
   useEffect(() => { reload(); }, [reload]);
+
+  // The bar's New team button lands here with ?new=team when it was pressed on
+  // another page. Consume it once, then strip it so a refresh does not reopen.
+  useEffect(() => {
+    if (params.get("new") !== "team" || !teams.length) return;
+    router.replace("/app");
+    newTeam();
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  }, [params, teams.length]);
 
   async function newFeature() {
     const list = projects;
@@ -236,6 +249,9 @@ export default function AppPage() {
           )}
         </div>
 
+        <input className="field search" placeholder="Search titles, specs and notes" value={q}
+          onChange={(e) => setQ(e.target.value)} />
+
         <div className="filters">
           <button className="chip" aria-pressed={filter === "all"} onClick={() => setFilter("all")}>
             All<b>{loaded.length}</b>
@@ -245,8 +261,6 @@ export default function AppPage() {
               {s.label}<b>{loaded.filter((f) => f.status === s.id).length}</b>
             </button>
           ))}
-          <input className="field search" placeholder="Search titles, specs and notes" value={q}
-            onChange={(e) => setQ(e.target.value)} />
         </div>
 
         {features === null ? (
@@ -302,5 +316,13 @@ export default function AppPage() {
       </div>
       {modal}
     </>
+  );
+}
+
+export default function AppPage() {
+  return (
+    <Suspense fallback={<div className="wrap" style={{ paddingTop: 40 }}><p className="hint">Loading</p></div>}>
+      <FeatureList />
+    </Suspense>
   );
 }

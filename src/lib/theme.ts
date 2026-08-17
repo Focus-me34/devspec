@@ -1,3 +1,8 @@
+/** Fired when the signed in user's own details change. The bar listens for it,
+ *  because it loads the profile once on mount and a route change is not what
+ *  happens when you save your name on the page you are already standing on. */
+export const ME_CHANGED = "devspec:me-changed";
+
 export type Theme = "light" | "dark";
 
 /** Deliberately long and app specific. Cookies are shared across every app on

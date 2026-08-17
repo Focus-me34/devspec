@@ -5,12 +5,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useModal } from "@/components/Modal";
 import AppBar from "@/components/AppBar";
-import { initials, tint } from "@/lib/avatar";
+import Avatar from "@/components/Avatar";
 
 type Team = { id: string; name: string; role: string };
 type Member = {
   id: string; userId: string; role: string; joinedAt: string;
   name: string; email: string;
+  title: string | null; phone: string | null; avatar: string | null;
 };
 type Me = { userId: string; role: string };
 
@@ -19,7 +20,7 @@ type Me = { userId: string; role: string };
 function MemberSkeleton() {
   return (
     <div className="member skel">
-      <span className="av" style={{ background: "var(--line-hi)", opacity: .5 }} />
+      <span className="av" style={{ background: "var(--line-hi)", opacity: .5, width: 38, height: 38 }} />
       <div className="member-id">
         <div className="member-name"><span className="skel-bar" style={{ width: 132 }} /></div>
         <div className="member-mail"><span className="skel-bar" style={{ width: 186, height: 8 }} /></div>
@@ -201,14 +202,22 @@ function People() {
 
             return (
               <div className="member" key={m.id}>
-                <span className="av" style={{ background: tint(m.name) }}>{initials(m.name)}</span>
+                <Avatar name={m.name} src={m.avatar} size={38} />
 
                 <div className="member-id">
                   <div className="member-name">
+                    {m.title && <span className="member-title">{m.title}</span>}
                     {m.name}
                     {self && <span className="chip-you">you</span>}
                   </div>
-                  <div className="member-mail">{m.email}</div>
+                  <div className="member-contact">
+                    <a href={`mailto:${m.email}`} title={`Email ${m.name}`}>{m.email}</a>
+                    {m.phone && (
+                      <a href={`tel:${m.phone.replace(/\s+/g, "")}`} title={`Call ${m.name}`}>
+                        {m.phone}
+                      </a>
+                    )}
+                  </div>
                 </div>
 
                 <span className="member-when">joined {joined(m.joinedAt)}</span>

@@ -1,5 +1,24 @@
 import type { Metadata } from "next";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+
+/** Self hosted at build time. The previous <link> to fonts.googleapis.com
+ *  blocked first paint on two cold connections, one for the stylesheet and
+ *  one to gstatic for the files. These are served from our own origin, so
+ *  neither round trip happens. */
+const sans = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-sans",
+  display: "swap",
+});
+
+const mono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-mono",
+  display: "swap",
+});
 
 const site = process.env.NEXT_PUBLIC_SITE_URL || "https://devspec.app";
 
@@ -37,15 +56,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" data-theme="light">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-          rel="stylesheet"
-        />
-      </head>
+    <html lang="en" data-theme="light" className={`${sans.variable} ${mono.variable}`}>
       <body>{children}</body>
     </html>
   );

@@ -117,7 +117,7 @@ export default function AppBar({
   }
 
   return (
-    <div className="bar">
+    <div className="bar app-bar">
       <div className="bar-in">
         <div className="bar-left">
           <Link href="/app" className="logo" aria-label="DevSpec home">

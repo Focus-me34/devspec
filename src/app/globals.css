@@ -672,7 +672,11 @@ footer { border-top: 1px solid var(--line); padding: 26px 0; color: var(--faint)
    and takes a row of its own, rather than wrapping into a ragged three. */
 @media (max-width: 820px) {
   .bar-in { padding: 10px 16px; gap: 10px; }
-  .bar-right { width: 100%; gap: 6px; }
+  /* Only the signed in bar takes a row of its own: it carries a team picker,
+     two actions, the profile and sign out. The marketing header has two
+     buttons that fit beside the wordmark, and this rule was wrapping them
+     onto a second line for no reason. */
+  .app-bar .bar-right { width: 100%; gap: 6px; }
   .bar-who { display: none; }
   .bar-teams { flex: 1 1 auto; min-width: 0; max-width: 190px; }
   .wrap, .mk { padding-left: 16px; padding-right: 16px; }

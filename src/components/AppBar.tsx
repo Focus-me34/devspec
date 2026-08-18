@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { currentTheme, persistTheme, ME_CHANGED, type Theme } from "@/lib/theme";
 import Avatar from "./Avatar";
 
@@ -10,12 +10,12 @@ import Avatar from "./Avatar";
  *
  *    DevSpec | team picker  New team  Features  People  ...  You  Sign out  ☾
  *
- *  Left of the gap is where you are and where you can go. Right of it is your
- *  own account. Nothing page specific lives here any more, which is what made
- *  the old bar inconsistent from screen to screen. */
+ *  On a narrow screen everything except the wordmark, your picture and the
+ *  burger folds into a panel underneath. The controls are written once and CSS
+ *  moves them, so the two layouts cannot drift apart. */
 
 /* Stroke icons on a 24 grid, sized by the bar. Inline rather than an icon
-   dependency, since the whole app needs five of them. */
+   dependency, since the whole app needs a handful of them. */
 const stroke = {
   fill: "none", stroke: "currentColor", strokeWidth: 2,
   strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true,
@@ -47,6 +47,18 @@ function SignOutIcon() {
   );
 }
 
+/** Three bars folding into a cross. One element, so there is nothing to
+ *  cross-fade and nothing to fall out of sync. */
+function BurgerIcon({ open }: { open: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" {...stroke} className={open ? "burger-i open" : "burger-i"}>
+      <line className="b1" x1="3" y1="6" x2="21" y2="6" />
+      <line className="b2" x1="3" y1="12" x2="21" y2="12" />
+      <line className="b3" x1="3" y1="18" x2="21" y2="18" />
+    </svg>
+  );
+}
+
 function ThemeToggle() {
   const [theme, setTheme] = useState<Theme>("light");
 
@@ -65,6 +77,9 @@ function ThemeToggle() {
       aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
       title={theme === "dark" ? "Light theme" : "Dark theme"}>
       {theme === "dark" ? "☀" : "☾"}
+      {/* In the folded menu every other row is a labelled control, so a bare
+          glyph reads as an empty row. The label only appears there. */}
+      <span className="menu-only">{theme === "dark" ? "Light theme" : "Dark theme"}</span>
     </button>
   );
 }
@@ -88,6 +103,8 @@ export default function AppBar({
   const path = usePathname();
   const [me, setMe] = useState<Me | null>(null);
   const [ownTeams, setOwnTeams] = useState<BarTeam[]>([]);
+  const [open, setOpen] = useState(false);
+  const barRef = useRef<HTMLDivElement>(null);
 
   // Its own fetches, so every page gets the avatar, the name and the team list
   // without each one having to remember to pass them in. Reloads on navigation
@@ -106,6 +123,24 @@ export default function AppBar({
     return () => { live = false; window.removeEventListener(ME_CHANGED, load); };
   }, [path]);
 
+  // Navigating is the commonest way to finish with the menu, so close on it.
+  useEffect(() => setOpen(false), [path]);
+
+  // Escape and a click anywhere else, the two things every menu should honour.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    const onDown = (e: MouseEvent) => {
+      if (!barRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("mousedown", onDown);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("mousedown", onDown);
+    };
+  }, [open]);
+
   const list = teams ?? ownTeams;
   // Without a handler from the page, switching team means going to look at that
   // team's features.
@@ -117,13 +152,13 @@ export default function AppBar({
   }
 
   return (
-    <div className="bar app-bar">
+    <div className={`bar app-bar${open ? " menu-open" : ""}`} ref={barRef}>
       <div className="bar-in">
-        <div className="bar-left">
-          <Link href="/app" className="logo" aria-label="DevSpec home">
-            <span className="dot" />DevSpec
-          </Link>
+        <Link href="/app" className="logo" aria-label="DevSpec home">
+          <span className="dot" />DevSpec
+        </Link>
 
+        <div className="bar-group nav-group">
           {list.length > 0 && (
             <select className="field bar-teams" value={teamId ?? list[0].id} aria-label="Team"
               onChange={(e) => change(e.target.value)}>
@@ -145,16 +180,26 @@ export default function AppBar({
           </nav>
         </div>
 
-        <div className="bar-right">
-          <Link href="/app/profile" className="profile-btn" title="Your profile">
-            <Avatar name={me?.name ?? "?"} src={me?.avatar} size={24} />
-            <span>{me?.name ?? " "}</span>
-          </Link>
+        <Link href="/app/profile" className="profile-btn" title="Your profile">
+          <Avatar name={me?.name ?? "?"} src={me?.avatar} size={26} />
+          <span className="profile-name">{me?.name ?? " "}</span>
+        </Link>
+
+        <div className="bar-group end-group">
           <button className="btn ghost danger" onClick={signOut}>
             <SignOutIcon />Sign out
           </button>
           <ThemeToggle />
         </div>
+
+        <button
+          className="burger"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          aria-label={open ? "Close menu" : "Open menu"}
+        >
+          <BurgerIcon open={open} />
+        </button>
       </div>
     </div>
   );

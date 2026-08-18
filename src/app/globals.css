@@ -180,8 +180,18 @@ kbd {
 .bar-in { --bar-h: 34px; }
 .bar-left { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; }
 .bar-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.bar-group { display: flex; align-items: center; gap: 8px; min-width: 0; }
+/* Takes the slack, which is what pushes the profile and the end group right. */
+.app-bar .nav-group { flex: 1; }
 .bar-nav { display: flex; align-items: center; gap: 3px; }
 .bar-teams { max-width: 180px; }
+
+/* Hidden until the bar is too narrow for its own contents. */
+.burger { display: none; }
+.burger-i line { transition: transform .22s cubic-bezier(.34, 1.4, .64, 1), opacity .14s; transform-origin: center; }
+.burger-i.open .b1 { transform: translateY(6px) rotate(45deg); }
+.burger-i.open .b2 { opacity: 0; }
+.burger-i.open .b3 { transform: translateY(-6px) rotate(-45deg); }
 
 .bar .field,
 .bar .btn,
@@ -192,6 +202,16 @@ kbd {
   display: inline-flex; align-items: center;
 }
 .bar .btn.icon { width: var(--bar-h); padding: 0; justify-content: center; }
+.burger {
+  width: var(--bar-h); height: var(--bar-h); padding: 0; flex: none;
+  background: var(--surface); color: var(--dim);
+  border: 1px solid var(--line); border-radius: 8px;
+  transition: color .15s, border-color .15s;
+}
+.burger:hover { color: var(--text); border-color: var(--line-hi); }
+.burger svg { width: 17px; height: 17px; }
+/* Only ever visible inside the folded menu. */
+.menu-only { display: none; }
 .bar .navlink { gap: 7px; }
 .bar .navlink svg, .bar .btn svg { width: 15px; height: 15px; flex: none; }
 
@@ -672,11 +692,30 @@ footer { border-top: 1px solid var(--line); padding: 26px 0; color: var(--faint)
    and takes a row of its own, rather than wrapping into a ragged three. */
 @media (max-width: 820px) {
   .bar-in { padding: 10px 16px; gap: 10px; }
-  /* Only the signed in bar takes a row of its own: it carries a team picker,
-     two actions, the profile and sign out. The marketing header has two
-     buttons that fit beside the wordmark, and this rule was wrapping them
-     onto a second line for no reason. */
-  .app-bar .bar-right { width: 100%; gap: 6px; }
+  /* The signed in bar folds. Wordmark, your picture and the burger stay on the
+     line; both control groups wrap to full width below it and are only shown
+     once the menu is open. Same markup as the wide layout, so the two cannot
+     drift apart the way two hand written bars would. */
+  .app-bar .bar-in { flex-wrap: wrap; row-gap: 0; }
+  .app-bar .burger { display: grid; place-items: center; }
+  .app-bar .profile-name { display: none; }
+  .app-bar .profile-btn { margin-left: auto; padding: 0; border: none; background: none; }
+  .app-bar .profile-btn:hover { background: none; }
+
+  .app-bar .bar-group {
+    display: none;
+    order: 9; flex-basis: 100%;
+    flex-direction: column; align-items: stretch; gap: 4px;
+  }
+  .app-bar.menu-open .bar-group { display: flex; }
+  .app-bar.menu-open .nav-group { padding-top: 10px; border-top: 1px solid var(--line); margin-top: 10px; }
+  .app-bar.menu-open .end-group { padding-bottom: 12px; }
+  .app-bar .bar-nav { flex-direction: column; align-items: stretch; gap: 2px; }
+  .app-bar .bar-group .field,
+  .app-bar .bar-group .btn,
+  .app-bar .bar-group .navlink { width: 100%; max-width: none; justify-content: flex-start; }
+  .app-bar .bar-group .btn.icon { width: 100%; gap: 9px; }
+  .app-bar .bar-group .menu-only { display: inline; font-size: 13.5px; font-weight: 500; }
   .bar-who { display: none; }
   .bar-teams { flex: 1 1 auto; min-width: 0; max-width: 190px; }
   .wrap, .mk { padding-left: 16px; padding-right: 16px; }

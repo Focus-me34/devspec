@@ -38,6 +38,30 @@ export type Spec = {
 
 type Pending = Spec & { kind: Kind; settle: (value: unknown) => void };
 
+/** The async clipboard API needs a secure context, a granted permission and a
+ *  real user gesture, and simply rejects when it does not have all three. The
+ *  textarea fallback still works in those cases, and if even that fails the
+ *  caller selects the text so the keyboard shortcut is one keystroke away. */
+async function copyText(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch { /* fall through */ }
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.cssText = "position:fixed;top:-9999px;opacity:0";
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand("copy");
+    ta.remove();
+    return ok;
+  } catch {
+    return false;
+  }
+}
+
 function Dialog({ pending, onClosed }: { pending: Pending | null; onClosed: () => void }) {
   const ref = useRef<HTMLDialogElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -46,6 +70,10 @@ function Dialog({ pending, onClosed }: { pending: Pending | null; onClosed: () =
   /** Held until the dialog has actually closed, so the secondary action can
    *  open the next dialog without the two fighting over the same element. */
   const afterClose = useRef<(() => void) | null>(null);
+  const resetCopy = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const detailRef = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => () => { if (resetCopy.current) clearTimeout(resetCopy.current); }, []);
   /** What this dialog will resolve with. A native close, meaning Escape or a
    *  backdrop click, leaves it at the cancel value. */
   const outcome = useRef<unknown>(null);
@@ -96,17 +124,44 @@ function Dialog({ pending, onClosed }: { pending: Pending | null; onClosed: () =
         {message && <p>{message}</p>}
         {pending.detail && (
           <div className="modal-detail-row">
-            <p className="modal-detail">{pending.detail}</p>
-            <button type="button" className="btn ghost" onClick={async () => {
-              try {
-                await navigator.clipboard.writeText(pending.detail!);
-                setCopied(true);
-              } catch {
-                // Clipboard refused, which is fine: the text is right there
-                // and selectable, so there is nothing to recover from.
-              }
-            }}>
-              {copied ? "Copied" : "Copy"}
+            <p className="modal-detail" ref={detailRef}>{pending.detail}</p>
+            <button
+              type="button"
+              className={`copy-btn${copied ? " done" : ""}`}
+              title={copied ? "Copied" : "Copy to clipboard"}
+              aria-label={copied ? "Copied to clipboard" : "Copy to clipboard"}
+              onClick={async () => {
+                if (await copyText(pending.detail!)) {
+                  setCopied(true);
+                  // Falls back to the copy icon so it can obviously be pressed
+                  // again, rather than sitting on a permanent tick.
+                  if (resetCopy.current) clearTimeout(resetCopy.current);
+                  resetCopy.current = setTimeout(() => setCopied(false), 1800);
+                  return;
+                }
+                // Both routes refused. Select the link so the shortcut works,
+                // rather than leaving a button that visibly does nothing.
+                const el = detailRef.current;
+                if (el) {
+                  const r = document.createRange();
+                  r.selectNodeContents(el);
+                  const sel = window.getSelection();
+                  sel?.removeAllRanges();
+                  sel?.addRange(r);
+                }
+              }}
+            >
+              {/* Both icons occupy the same grid cell, so one can grow into
+                  place as the other shrinks away without the button resizing. */}
+              <svg className="copy-i" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <rect x="9" y="9" width="12" height="12" rx="2" />
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+              </svg>
+              <svg className="check-i" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="m5 13 4 4L19 7" />
+              </svg>
             </button>
           </div>
         )}

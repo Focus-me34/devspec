@@ -612,9 +612,37 @@ footer { border-top: 1px solid var(--line); padding: 26px 0; color: var(--faint)
   background: var(--surface-hi); border: 1px solid var(--line);
   border-radius: 8px; padding: 10px 12px; margin-top: 14px !important;
 }
-.modal-detail-row { display: flex; align-items: stretch; gap: 8px; }
-.modal-detail-row .modal-detail { flex: 1; min-width: 0; }
-.modal-detail-row .btn { flex: none; align-self: stretch; margin-top: 14px; }
+/* The button sits inside the link box, bottom right, rather than beside it.
+   The text reserves room for it on its last line so the two never overlap. */
+.modal-detail-row { position: relative; }
+.modal-detail-row .modal-detail { padding-bottom: 34px; }
+
+/* Copy to clipboard. Both icons share one grid cell, so the tick grows into
+   place as the clipboard shrinks away and the button never changes size. The
+   overshoot on the timing function is what gives it the little pop; doing this
+   with an animation library would mean shipping one for a single 34px button. */
+.copy-btn {
+  position: absolute; right: 8px; bottom: 8px;
+  display: grid; place-items: center;
+  width: 30px; height: 30px; padding: 0;
+  border: 1px solid var(--line); border-radius: 8px;
+  background: var(--surface); color: var(--faint);
+  transition: color .18s, border-color .18s, background-color .18s;
+}
+.copy-btn:hover { color: var(--text); border-color: var(--line-hi); }
+.copy-btn svg {
+  grid-area: 1 / 1; width: 15px; height: 15px;
+  transition: opacity .16s ease, transform .26s cubic-bezier(.34, 1.56, .64, 1);
+}
+.copy-btn .check-i { opacity: 0; transform: scale(.4) rotate(-14deg); }
+
+.copy-btn.done {
+  color: var(--brand-a);
+  border-color: color-mix(in srgb, var(--brand-a) 42%, transparent);
+  background: color-mix(in srgb, var(--brand-a) 10%, transparent);
+}
+.copy-btn.done .copy-i { opacity: 0; transform: scale(.4) rotate(14deg); }
+.copy-btn.done .check-i { opacity: 1; transform: scale(1) rotate(0); }
 .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
 /* Pushed away from the confirm pair, so the quiet alternative does not read as
    part of the Cancel/Confirm decision. */
@@ -675,4 +703,5 @@ footer { border-top: 1px solid var(--line); padding: 26px 0; color: var(--faint)
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
   .modal, .modal::backdrop, .skel { animation: none; }
+  .copy-btn svg { transition: opacity .01s; transform: none !important; }
 }

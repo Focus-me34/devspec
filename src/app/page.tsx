@@ -1,4 +1,5 @@
 import Link from "next/link";
+import ThemeToggle from "@/components/ThemeToggle";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -98,6 +99,7 @@ export default function Home() {
           <div className="bar-right">
             <Link href="/login" className="btn ghost">Sign in</Link>
             <Link href="/login?mode=register" className="btn">Start free</Link>
+            <ThemeToggle />
           </div>
         </div>
       </div>

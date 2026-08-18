@@ -3,6 +3,7 @@
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import ThemeToggle from "@/components/ThemeToggle";
 
 function Form() {
   const router = useRouter();
@@ -39,6 +40,7 @@ function Form() {
 
   return (
     <div className="auth">
+      <ThemeToggle className="corner-theme" />
       <Link href="/" className="logo" style={{ marginBottom: 26 }}>
         <span className="dot" />
         DevSpec

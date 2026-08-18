@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import ThemeToggle from "@/components/ThemeToggle";
 import { initials, tint } from "@/lib/avatar";
 
 type Info = { teamName: string; signedIn: boolean; alreadyIn: boolean };
@@ -12,6 +13,7 @@ type Info = { teamName: string; signedIn: boolean; alreadyIn: boolean };
 function Shell({ team, children }: { team?: string; children: React.ReactNode }) {
   return (
     <div className="invite">
+      <ThemeToggle className="corner-theme" />
       <Link href="/" className="logo" style={{ marginBottom: 22 }}>
         <span className="dot" />DevSpec
       </Link>

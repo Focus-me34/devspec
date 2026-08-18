@@ -3,16 +3,18 @@
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { currentTheme, persistTheme, ME_CHANGED, type Theme } from "@/lib/theme";
+import { ME_CHANGED } from "@/lib/theme";
 import Avatar from "./Avatar";
+import ThemeToggle from "./ThemeToggle";
 
 /** One bar for every signed in page, in one fixed order:
  *
  *    DevSpec | team picker  New team  Features  People  ...  You  Sign out  ☾
  *
- *  On a narrow screen everything except the wordmark, your picture and the
- *  burger folds into a panel underneath. The controls are written once and CSS
- *  moves them, so the two layouts cannot drift apart. */
+ *  Narrow, it becomes:  DevSpec ☾ ......... you  ☰
+ *  and the rest drops into a panel laid over the page. The controls are
+ *  written once and CSS orders and moves them, so the two layouts cannot drift
+ *  apart the way two hand written bars would. */
 
 /* Stroke icons on a 24 grid, sized by the bar. Inline rather than an icon
    dependency, since the whole app needs a handful of them. */
@@ -44,43 +46,6 @@ function SignOutIcon() {
     <svg viewBox="0 0 24 24" {...stroke}>
       <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
     </svg>
-  );
-}
-
-/** Three bars folding into a cross. One element, so there is nothing to
- *  cross-fade and nothing to fall out of sync. */
-function BurgerIcon({ open }: { open: boolean }) {
-  return (
-    <svg viewBox="0 0 24 24" {...stroke} className={open ? "burger-i open" : "burger-i"}>
-      <line className="b1" x1="3" y1="6" x2="21" y2="6" />
-      <line className="b2" x1="3" y1="12" x2="21" y2="12" />
-      <line className="b3" x1="3" y1="18" x2="21" y2="18" />
-    </svg>
-  );
-}
-
-function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>("light");
-
-  // The inline script in the layout has already decided; read that rather than
-  // assume, otherwise the icon disagrees with the page on the first render.
-  useEffect(() => setTheme(currentTheme()), []);
-
-  function toggle() {
-    const next: Theme = theme === "dark" ? "light" : "dark";
-    setTheme(next);
-    persistTheme(next);
-  }
-
-  return (
-    <button className="btn icon" onClick={toggle}
-      aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
-      title={theme === "dark" ? "Light theme" : "Dark theme"}>
-      {theme === "dark" ? "☀" : "☾"}
-      {/* In the folded menu every other row is a labelled control, so a bare
-          glyph reads as an empty row. The label only appears there. */}
-      <span className="menu-only">{theme === "dark" ? "Light theme" : "Dark theme"}</span>
-    </button>
   );
 }
 
@@ -158,26 +123,39 @@ export default function AppBar({
           <span className="dot" />DevSpec
         </Link>
 
-        <div className="bar-group nav-group">
-          {list.length > 0 && (
-            <select className="field bar-teams" value={teamId ?? list[0].id} aria-label="Team"
-              onChange={(e) => change(e.target.value)}>
-              {list.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
-            </select>
-          )}
-          <button className="btn ghost"
-            onClick={onNewTeam ?? (() => router.push("/app?new=team"))}>New team</button>
+        {/* Ordered last on a wide bar and second on a narrow one, which is why
+            it sits here in the markup rather than inside the menu: the menu is
+            lifted out of the row entirely when it folds. */}
+        <ThemeToggle className="bar-theme" />
 
-          <nav className="bar-nav">
-            <Link href="/app" className="navlink"
-              aria-current={path === "/app" ? "page" : undefined}>
-              <FeaturesIcon />Features
-            </Link>
-            <Link href={teamId ? `/app/team?team=${teamId}` : "/app/team"} className="navlink"
-              aria-current={path.startsWith("/app/team") ? "page" : undefined}>
-              <PeopleIcon />People
-            </Link>
-          </nav>
+        <div className="bar-menu">
+          <div className="bar-group nav-group">
+            {list.length > 0 && (
+              <select className="field bar-teams" value={teamId ?? list[0].id} aria-label="Team"
+                onChange={(e) => change(e.target.value)}>
+                {list.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+              </select>
+            )}
+            <button className="btn ghost"
+              onClick={onNewTeam ?? (() => router.push("/app?new=team"))}>New team</button>
+
+            <nav className="bar-nav">
+              <Link href="/app" className="navlink"
+                aria-current={path === "/app" ? "page" : undefined}>
+                <FeaturesIcon />Features
+              </Link>
+              <Link href={teamId ? `/app/team?team=${teamId}` : "/app/team"} className="navlink"
+                aria-current={path.startsWith("/app/team") ? "page" : undefined}>
+                <PeopleIcon />People
+              </Link>
+            </nav>
+          </div>
+
+          <div className="bar-group end-group">
+            <button className="btn ghost danger" onClick={signOut}>
+              <SignOutIcon />Sign out
+            </button>
+          </div>
         </div>
 
         <Link href="/app/profile" className="profile-btn" title="Your profile">
@@ -185,20 +163,21 @@ export default function AppBar({
           <span className="profile-name">{me?.name ?? " "}</span>
         </Link>
 
-        <div className="bar-group end-group">
-          <button className="btn ghost danger" onClick={signOut}>
-            <SignOutIcon />Sign out
-          </button>
-          <ThemeToggle />
-        </div>
-
+        {/* Two icons in one grid cell rather than three lines rotating into an
+            X. Rotating individual <line> elements depends on transform-box and
+            comes out lopsided; two whole icons cannot be anything but square. */}
         <button
           className="burger"
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
           aria-label={open ? "Close menu" : "Open menu"}
         >
-          <BurgerIcon open={open} />
+          <svg className="burger-i" viewBox="0 0 24 24" {...stroke}>
+            <path d="M4 7h16M4 12h16M4 17h16" />
+          </svg>
+          <svg className="close-i" viewBox="0 0 24 24" {...stroke}>
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
         </button>
       </div>
     </div>
